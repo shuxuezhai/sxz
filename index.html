@@ -1,0 +1,2587 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>字入游戏：五体书法的视觉语言与研发应用</title>
+  <style>
+    :root {
+      --paper: #f7f2e8;
+      --paper-deep: #eee5d5;
+      --silk: #fbf8f0;
+      --ink: #221d18;
+      --ink-2: #4a4037;
+      --muted: #786d62;
+      --line: #ded2bd;
+      --red: #a8392b;
+      --red-soft: #f1dfd9;
+      --qing: #315f59;
+      --green: #6f8266;
+      --shadow: 0 18px 50px rgba(63, 45, 26, .12);
+      --radius: 8px;
+      --nav-h: 68px;
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 92px; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      line-height: 1.72;
+      overflow-x: hidden;
+    }
+    body.locked { overflow: hidden; }
+    button, input, textarea, select {
+      font: inherit;
+    }
+    button {
+      border: 0;
+      cursor: pointer;
+      color: inherit;
+      background: transparent;
+    }
+    img { max-width: 100%; display: block; }
+    a { color: inherit; text-decoration: none; }
+    .container {
+      width: min(1280px, calc(100% - 48px));
+      margin: 0 auto;
+    }
+    .container > *,
+    .hero-grid > *,
+    .intro-grid > *,
+    .section-head > *,
+    .job-layout > *,
+    .selector-grid > *,
+    .art-card > *,
+    .wuti-card,
+    .panel,
+    .card {
+      min-width: 0;
+    }
+    .section {
+      padding: 92px 0;
+      position: relative;
+    }
+    .section.alt { background: var(--silk); border-block: 1px solid rgba(128, 105, 75, .14); }
+    .eyebrow {
+      color: var(--red);
+      font-size: 13px;
+      letter-spacing: 0;
+      font-weight: 700;
+      margin: 0 0 10px;
+    }
+    .section-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(260px, 420px);
+      gap: 32px;
+      align-items: end;
+      margin-bottom: 34px;
+    }
+    .section h2 {
+      margin: 0;
+      font-size: clamp(30px, 4vw, 54px);
+      font-weight: 700;
+      letter-spacing: 0;
+      line-height: 1.16;
+    }
+    .lead, .section-head p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+    }
+    .nav {
+      position: fixed;
+      inset: 0 0 auto;
+      height: var(--nav-h);
+      z-index: 50;
+      transition: background .28s ease, box-shadow .28s ease, border-color .28s ease;
+      background: rgba(48, 47, 42, .54);
+      backdrop-filter: blur(16px) saturate(112%);
+      -webkit-backdrop-filter: blur(16px) saturate(112%);
+      border-bottom: 1px solid rgba(255, 248, 232, .22);
+      box-shadow: 0 8px 28px rgba(24, 20, 14, .16);
+    }
+    .nav.scrolled {
+      background: rgba(48, 47, 42, .66);
+      border-bottom-color: rgba(255, 248, 232, .18);
+      box-shadow: 0 8px 30px rgba(24, 20, 14, .22);
+    }
+    .nav-inner {
+      width: calc(100% - 48px);
+      max-width: none;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+    .brand {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.1;
+      font-weight: 800;
+      min-width: 132px;
+      color: #fffaf0;
+      text-shadow: 0 1px 8px rgba(0, 0, 0, .24);
+    }
+    .brand small { color: rgba(255, 250, 240, .72); font-size: 11px; font-weight: 500; margin-top: 4px; }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .nav-route-mobile { display: none; }
+    .mobile-count { color: var(--red); font-weight: 700; }
+    .nav-link {
+      position: relative;
+      padding: 9px 12px;
+      border-radius: 999px;
+      color: rgba(255, 250, 240, .82);
+      transition: color .2s ease, background .2s ease;
+      white-space: nowrap;
+    }
+    .nav-link:hover { color: #fffaf0; background: rgba(255, 255, 255, .12); }
+    .nav-link.active { color: #f0c790; }
+    .nav-link.active::after {
+      content: "";
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 5px;
+      height: 1px;
+      background: #d56a47;
+    }
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-left: 14px;
+      border-left: 1px solid rgba(255, 248, 232, .2);
+    }
+    .nav-utility {
+      min-height: 40px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 0 10px;
+      color: rgba(255, 250, 240, .9);
+      border-radius: 6px;
+      white-space: nowrap;
+      transition: background .2s ease, color .2s ease;
+    }
+    .nav-utility:hover { background: rgba(255,255,255,.12); color: #fffaf0; }
+    .utility-mark { font-size: 17px; line-height: 1; }
+    .utility-label { font-size: 13px; font-weight: 700; }
+    .utility-count {
+      display: none;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      border-radius: 999px;
+      align-items: center;
+      justify-content: center;
+      background: var(--red);
+      color: #fffaf2;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .utility-count.show { display: inline-flex; }
+    .icon-btn, .soft-btn, .primary-btn, .ghost-btn, .chip, .seg-btn {
+      min-height: 40px;
+      border-radius: 999px;
+      transition: transform .2s ease, background .2s ease, border-color .2s ease, color .2s ease;
+    }
+    .icon-btn {
+      width: 42px;
+      display: grid;
+      place-items: center;
+      color: #fffaf0;
+      border: 1px solid rgba(255, 248, 232, .34);
+      background: rgba(255, 255, 255, .12);
+    }
+    .icon-btn:hover, .soft-btn:hover, .ghost-btn:hover { transform: translateY(-1px); }
+    .chip {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, .52);
+      padding: 8px 13px;
+      color: var(--ink-2);
+    }
+    .chip.active {
+      border-color: rgba(168,57,43,.4);
+      background: var(--red-soft);
+      color: var(--red);
+      font-weight: 700;
+    }
+    .menu-btn { display: none; }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    .hero {
+      min-height: 94vh;
+      position: relative;
+      display: grid;
+      align-items: end;
+      overflow: hidden;
+      isolation: isolate;
+      padding: calc(var(--nav-h) + 56px) 0 46px;
+      background: #d7c7ad;
+    }
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -2;
+      background-image: linear-gradient(90deg, rgba(28, 23, 19, .52), rgba(49, 38, 28, .2) 48%, rgba(248, 242, 231, .08)), url("./素材库/首页主题/李唐_归去来兮图_web.jpg");
+      background-size: cover;
+      background-position: center;
+      transform: translateY(calc(var(--scroll, 0) * .05px)) scale(1.02);
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background:
+        linear-gradient(180deg, rgba(66, 50, 34, .03) 42%, rgba(96, 76, 54, .13) 74%, rgba(230, 219, 199, .52) 100%),
+        linear-gradient(90deg, rgba(51, 39, 27, .09), transparent 52%, rgba(244, 237, 224, .06));
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 520px);
+      gap: 42px;
+      align-items: end;
+    }
+    .hero-copy {
+      color: #fffaf0;
+      text-shadow: 0 2px 16px rgba(0,0,0,.26);
+      max-width: 760px;
+    }
+    .hero-copy .eyebrow { color: #f3e6d1; }
+    .hero h1 {
+      margin: 0 0 16px;
+      font-size: clamp(48px, 7vw, 92px);
+      line-height: 1.03;
+      letter-spacing: 0;
+      font-weight: 800;
+    }
+    .hero .subtitle {
+      margin: 0 0 18px;
+      font-size: clamp(18px, 2vw, 25px);
+      color: #fff7e9;
+      font-weight: 600;
+    }
+    .hero p {
+      max-width: 740px;
+      margin: 0;
+      color: rgba(255, 250, 238, .92);
+      font-size: 16px;
+    }
+    .tag-row, .button-row, .filter-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .tag-row { margin: 22px 0; }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid rgba(255,255,255,.34);
+      background: rgba(255,255,255,.14);
+      color: inherit;
+      padding: 6px 11px;
+      border-radius: 999px;
+      font-size: 13px;
+      backdrop-filter: blur(8px);
+    }
+    .primary-btn, .soft-btn, .ghost-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border: 1px solid transparent;
+      font-weight: 700;
+    }
+    .primary-btn {
+      background: var(--red);
+      color: #fffaf2;
+      box-shadow: 0 10px 24px rgba(153, 52, 39, .24);
+    }
+    .primary-btn:hover { background: #922d23; }
+    .soft-btn {
+      background: rgba(255,255,255,.7);
+      color: var(--ink);
+      border-color: rgba(73, 58, 39, .14);
+    }
+    .ghost-btn {
+      border-color: rgba(104, 82, 54, .2);
+      color: var(--ink-2);
+      background: rgba(255,255,255,.24);
+    }
+    .hero-panel {
+      align-self: stretch;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      gap: 18px;
+    }
+    .search-box {
+      position: relative;
+      background: rgba(255, 252, 246, .86);
+      border: 1px solid rgba(125, 93, 68, .22);
+      border-radius: 28px;
+      padding: 8px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+    .search-form {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+    }
+    .search-form input {
+      min-width: 0;
+      height: 48px;
+      border: 0;
+      outline: none;
+      background: transparent;
+      color: var(--ink);
+    }
+    .search-box:focus-within {
+      border-color: rgba(168,57,43,.68);
+      box-shadow: 0 20px 60px rgba(86, 50, 28, .18);
+    }
+    .suggest-panel {
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      top: calc(100% + 8px);
+      background: rgba(255, 252, 246, .98);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 12px;
+      display: none;
+      z-index: 10;
+      max-height: 340px;
+      overflow: auto;
+    }
+    .suggest-panel.open { display: block; }
+    .global-search {
+      position: fixed;
+      top: calc(var(--nav-h) + 14px);
+      left: 50%;
+      width: min(680px, calc(100% - 32px));
+      transform: translateX(-50%);
+      z-index: 70;
+      display: none;
+    }
+    .global-search.open { display: block; }
+    .global-search .search-box { background: rgba(255, 252, 246, .96); }
+    .global-search .suggest-panel { max-height: min(54vh, 420px); }
+    .suggest-group h4 {
+      margin: 8px 0 6px;
+      color: var(--red);
+      font-size: 12px;
+    }
+    .suggest-item {
+      width: 100%;
+      text-align: left;
+      padding: 9px 10px;
+      border-radius: 8px;
+      display: block;
+    }
+    .suggest-item:hover { background: var(--red-soft); }
+    .suggest-item strong { display: block; font-size: 14px; }
+    .suggest-item span { display: block; color: var(--muted); font-size: 12px; }
+    .hero-source {
+      justify-self: end;
+      color: rgba(255,250,240,.88);
+      font-size: 12px;
+      text-align: right;
+      text-shadow: 0 2px 10px rgba(0,0,0,.24);
+    }
+    .scroll-cue {
+      position: absolute;
+      left: 50%;
+      bottom: 22px;
+      transform: translateX(-50%);
+      color: rgba(255,250,240,.85);
+      font-size: 12px;
+      display: grid;
+      justify-items: center;
+      gap: 4px;
+    }
+    .scroll-cue::before {
+      content: "";
+      width: 22px;
+      height: 34px;
+      border: 1px solid currentColor;
+      border-radius: 999px;
+      opacity: .72;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+    .stat {
+      padding: 28px 24px;
+      border-right: 1px solid var(--line);
+    }
+    .stat:last-child { border-right: 0; }
+    .stat strong {
+      display: block;
+      font-size: 40px;
+      line-height: 1;
+      color: var(--red);
+      margin-bottom: 8px;
+    }
+    #overview, #why, #culture, #jobs, #risks, #relations {
+      display: none;
+    }
+    .filter-block {
+      display: grid;
+      gap: 10px;
+      margin: 16px 0;
+    }
+    .filter-block strong {
+      color: var(--ink-2);
+      font-size: 13px;
+    }
+    .compact-note {
+      margin-top: 18px;
+      padding: 12px 14px;
+      color: var(--muted);
+      font-size: 13px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255,252,246,.58);
+    }
+    .intro-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(300px, 480px);
+      gap: 44px;
+    }
+    .question-list {
+      padding: 0;
+      margin: 18px 0 0;
+      list-style: none;
+      display: grid;
+      gap: 9px;
+    }
+    .question-list li {
+      padding-left: 20px;
+      position: relative;
+      color: var(--ink-2);
+    }
+    .question-list li::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--red);
+      position: absolute;
+      left: 0;
+      top: .78em;
+    }
+    .spectrum {
+      background: var(--silk);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 22px;
+    }
+    .spectrum-track {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 0;
+      max-width: 100%;
+      margin: 12px 0 18px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .spectrum-track span {
+      padding: 14px 10px;
+      background: linear-gradient(90deg, rgba(168,57,43,.11), rgba(49,95,89,.08));
+      border-right: 1px solid var(--line);
+      text-align: center;
+      font-size: 13px;
+    }
+    .spectrum-track span:last-child { border-right: 0; }
+    .spectrum-lines {
+      display: grid;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .panel, .card {
+      background: rgba(255, 252, 246, .76);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 8px 30px rgba(70, 48, 24, .06);
+    }
+    .wuti-controls {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .seg {
+      display: inline-flex;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,.62);
+      gap: 3px;
+    }
+    .seg-btn {
+      padding: 8px 14px;
+      min-width: 56px;
+      color: var(--muted);
+    }
+    .seg-btn.active {
+      background: var(--red);
+      color: #fff;
+    }
+    .wuti-row {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(180px, 1fr));
+      gap: 14px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+    .wuti-card {
+      min-width: 180px;
+      padding: 16px;
+      transition: opacity .22s ease, transform .22s ease, background .22s ease;
+    }
+    .wuti-row:hover .wuti-card { opacity: .68; }
+    .wuti-row .wuti-card:hover {
+      opacity: 1;
+      transform: translateY(-3px);
+      background: #fffaf2;
+    }
+    .glyph-box {
+      aspect-ratio: 1 / 1;
+      display: grid;
+      place-items: center;
+      background: #eee5d4;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .glyph-box img {
+      width: 84%;
+      height: 84%;
+      object-fit: contain;
+      transition: transform .22s ease;
+    }
+    .wuti-card:hover img { transform: scale(1.04); }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); }
+    table { width: 100%; border-collapse: collapse; min-width: 880px; background: rgba(255,252,246,.74); }
+    th, td { padding: 12px 14px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { color: var(--red); font-size: 13px; background: rgba(244, 234, 218, .72); }
+    tr:last-child td { border-bottom: 0; }
+    .art-group {
+      margin-top: 30px;
+      padding-top: 28px;
+      border-top: 1px solid var(--line);
+    }
+    .art-group h3 { margin: 0 0 14px; font-size: 22px; }
+    .art-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+    .art-card {
+      display: grid;
+      grid-template-columns: minmax(160px, 42%) minmax(0, 1fr);
+      gap: 18px;
+      padding: 14px;
+    }
+    .art-media {
+      position: relative;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #e8ddca;
+      align-self: start;
+      min-height: 230px;
+    }
+    .art-media img {
+      width: 100%;
+      height: 100%;
+      min-height: 230px;
+      object-fit: contain;
+      transition: transform .26s ease;
+    }
+    .art-card:hover .art-media img { transform: scale(1.025); }
+    .media-badge {
+      position: absolute;
+      inset: auto 10px 10px;
+      background: rgba(34, 29, 24, .72);
+      color: #fff;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      opacity: 0;
+      transition: opacity .2s ease;
+    }
+    .art-card:hover .media-badge { opacity: 1; }
+    .art-body h4 {
+      margin: 0 0 6px;
+      font-size: 22px;
+      line-height: 1.25;
+    }
+    .art-body {
+      display: flex;
+      flex-direction: column;
+    }
+    .meta {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+    .mini-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin: 10px 0;
+    }
+    .mini-tags span, .status-pill {
+      border: 1px solid var(--line);
+      background: rgba(247,242,232,.76);
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      color: var(--ink-2);
+    }
+    .status-pill.warn { border-color: rgba(168,57,43,.28); color: var(--red); background: var(--red-soft); }
+    .use-case {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin: 12px 0;
+    }
+    .use-case div {
+      padding: 9px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(247, 242, 232, .62);
+      font-size: 12px;
+      color: var(--ink-2);
+    }
+    .use-case b {
+      display: block;
+      margin-bottom: 2px;
+      color: var(--red);
+      font-size: 12px;
+    }
+    .art-actions {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      justify-content: stretch;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .art-actions button {
+      min-height: 38px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.84);
+      border-radius: 6px;
+      padding: 7px 9px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ink-2);
+      white-space: nowrap;
+    }
+    .art-actions button:hover { border-color: rgba(168,57,43,.46); color: var(--red); background: #fffaf2; }
+    .art-actions button.active { color: var(--red); border-color: rgba(168,57,43,.38); background: var(--red-soft); }
+    .art-footer { display: flex; justify-content: flex-end; margin-top: auto; padding-top: 12px; }
+    .art-archive {
+      min-height: 38px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      background: var(--red);
+      color: #fffaf2;
+      font-size: 12px;
+      font-weight: 700;
+      box-shadow: 0 7px 16px rgba(153, 52, 39, .16);
+      white-space: nowrap;
+    }
+    .art-archive:hover { background: #922d23; }
+    .tool-note {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin-top: 22px;
+    }
+    .tool-note .panel { padding: 18px; }
+    .material-grid, .risk-grid, .relation-grid, .source-grid, .inspire-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .material-card, .risk-card, .relation-card, .source-card, .inspire-card {
+      padding: 20px;
+    }
+    .material-card.active, .highlight {
+      outline: 2px solid rgba(168,57,43,.44);
+      background: #fffaf2 !important;
+      transition: outline .2s ease, background .2s ease;
+    }
+    .job-layout {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      gap: 22px;
+    }
+    .job-list {
+      display: grid;
+      gap: 8px;
+      align-content: start;
+    }
+    .job-list button, .choice-group button, .node-btn {
+      text-align: left;
+      padding: 11px 13px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.56);
+      border-radius: 8px;
+      min-height: 44px;
+    }
+    .job-list button.active, .choice-group button.active, .node-btn.active {
+      border-color: rgba(168,57,43,.45);
+      background: var(--red-soft);
+      color: var(--red);
+      font-weight: 700;
+    }
+    .recommend-box {
+      padding: 24px;
+      min-height: 260px;
+    }
+    .selector-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+    .choice-group {
+      padding: 16px;
+      display: grid;
+      gap: 8px;
+      align-content: start;
+    }
+    .choice-group h3 { margin: 0 0 6px; font-size: 16px; }
+    .result-card {
+      margin-top: 16px;
+      padding: 20px;
+      display: none;
+    }
+    .result-card.open { display: block; }
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 26px;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(34,29,24,.92);
+      color: #fff;
+      border-radius: 999px;
+      padding: 10px 16px;
+      z-index: 120;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .22s ease, transform .22s ease;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .modal, .viewer {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: none;
+    }
+    .modal.open, .viewer.open { display: block; }
+    .modal {
+      background: rgba(35, 28, 22, .38);
+      backdrop-filter: blur(8px);
+      padding: 78px 20px 20px;
+      overflow: auto;
+    }
+    .modal-box {
+      max-width: 760px;
+      margin: 0 auto;
+      background: var(--silk);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      position: relative;
+    }
+    .close-x {
+      position: absolute;
+      right: 12px;
+      top: 12px;
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.62);
+    }
+    .drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      height: 100dvh;
+      width: min(460px, 100%);
+      background: var(--silk);
+      border-left: 1px solid var(--line);
+      z-index: 110;
+      transform: translateX(100%);
+      transition: transform .28s ease;
+      box-shadow: -20px 0 60px rgba(55, 40, 22, .16);
+      overflow: auto;
+      padding: 72px 24px 24px;
+    }
+    .drawer.open { transform: translateX(0); }
+    .viewer {
+      background: #16120f;
+      color: #fffaf0;
+      overflow: hidden;
+    }
+    .viewer-head {
+      position: absolute;
+      inset: 0 0 auto;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      background: linear-gradient(180deg, rgba(0,0,0,.56), rgba(0,0,0,0));
+      z-index: 4;
+    }
+    .viewer-title { font-weight: 700; }
+    .viewer-stage {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      touch-action: none;
+      cursor: grab;
+      display: grid;
+      place-items: center;
+    }
+    .viewer-stage.dragging { cursor: grabbing; }
+    .viewer-img {
+      max-width: none;
+      user-select: none;
+      transform-origin: 0 0;
+      will-change: transform, filter;
+    }
+    .viewer-loading, .viewer-error {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: #16120f;
+      z-index: 2;
+      text-align: center;
+      padding: 20px;
+    }
+    .viewer-error { display: none; }
+    .viewer-toolbar {
+      position: absolute;
+      right: 14px;
+      top: 72px;
+      z-index: 5;
+      display: grid;
+      gap: 8px;
+      background: rgba(247,242,232,.88);
+      color: var(--ink);
+      border: 1px solid rgba(255,255,255,.28);
+      border-radius: 12px;
+      padding: 6px;
+      backdrop-filter: blur(10px);
+    }
+    .viewer-toolbar button {
+      width: 64px;
+      height: 38px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    .viewer-toolbar button:hover, .viewer-toolbar button.active { background: var(--red-soft); color: var(--red); }
+    .viewer-panel {
+      position: absolute;
+      top: 72px;
+      right: 94px;
+      width: min(420px, calc(100% - 140px));
+      max-height: calc(100dvh - 98px);
+      overflow: auto;
+      z-index: 5;
+      display: none;
+      color: var(--ink);
+      padding: 18px;
+      background: rgba(255, 252, 246, .94);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .viewer-panel.open { display: block; }
+    .tool-row {
+      display: grid;
+      grid-template-columns: 104px 1fr;
+      gap: 10px;
+      align-items: center;
+      margin: 10px 0;
+      font-size: 13px;
+    }
+    .tool-row input[type="range"] { width: 100%; }
+    .grid-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: none;
+      background-image: linear-gradient(rgba(255,255,255,.18) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.18) 1px, transparent 1px);
+      background-size: 80px 80px;
+      z-index: 3;
+    }
+    .grid-overlay.show { display: block; }
+    .scale-overlay {
+      position: absolute;
+      left: 24px;
+      bottom: 162px;
+      z-index: 4;
+      display: none;
+      color: #fffaf0;
+      text-shadow: 0 1px 8px rgba(0,0,0,.7);
+      font-size: 12px;
+      pointer-events: none;
+    }
+    .scale-overlay.show { display: block; }
+    .scale-overlay::before {
+      content: "";
+      display: block;
+      width: 120px;
+      height: 8px;
+      border-left: 2px solid currentColor;
+      border-right: 2px solid currentColor;
+      border-bottom: 2px solid currentColor;
+      margin-bottom: 4px;
+    }
+    .mini-map {
+      position: absolute;
+      left: 14px;
+      bottom: 14px;
+      width: 190px;
+      max-height: 132px;
+      z-index: 5;
+      border: 1px solid rgba(255,255,255,.34);
+      background: rgba(0,0,0,.36);
+      padding: 4px;
+      border-radius: 6px;
+    }
+    .mini-map img { width: 100%; max-height: 120px; object-fit: contain; opacity: .84; }
+    .compare-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 115;
+      background: rgba(22,18,15,.96);
+      color: #fffaf0;
+      display: none;
+      padding: 72px 18px 18px;
+    }
+    .compare-modal.open { display: grid; grid-template-rows: auto 1fr; gap: 14px; }
+    .compare-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .compare-stage {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      min-height: 0;
+    }
+    .compare-pane {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.2);
+      background: #0e0b09;
+      min-height: 340px;
+      touch-action: none;
+    }
+    .compare-pane img {
+      max-width: none;
+      transform-origin: 0 0;
+      user-select: none;
+    }
+    .slider-compare {
+      display: none;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.22);
+      background: #0e0b09;
+    }
+    .slider-compare img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      position: absolute;
+      inset: 0;
+    }
+    .slider-compare .top-img { clip-path: inset(0 50% 0 0); }
+    .slider-compare input {
+      position: absolute;
+      inset: auto 20px 20px;
+      width: calc(100% - 40px);
+      z-index: 2;
+    }
+    .compare-modal.slider .compare-stage { display: none; }
+    .compare-modal.slider .slider-compare { display: block; min-height: 70dvh; }
+    .form-grid {
+      display: grid;
+      gap: 12px;
+    }
+    .field { display: grid; gap: 6px; }
+    .field input, .field textarea, .field select {
+      border: 1px solid var(--line);
+      background: #fffdf8;
+      border-radius: 8px;
+      padding: 10px 12px;
+      min-height: 44px;
+    }
+    .field textarea { min-height: 132px; resize: vertical; }
+    .footer {
+      padding: 44px 0;
+      background: #2a241d;
+      color: #efe6d4;
+    }
+    .footer p { color: rgba(239,230,212,.75); margin: 0; }
+    .route-view {
+      display: none;
+      min-height: 100vh;
+      padding: calc(var(--nav-h) + 52px) 0 72px;
+      background: var(--paper);
+    }
+    .route-view.open { display: block; }
+    body.route-alt main, body.route-alt .footer { display: none; }
+    .route-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 24px;
+      padding-bottom: 26px;
+      margin-bottom: 28px;
+      border-bottom: 1px solid var(--line);
+    }
+    .route-head h1 { margin: 0; font-size: 42px; line-height: 1.15; }
+    .route-head p { margin: 8px 0 0; color: var(--muted); }
+    .route-back { white-space: nowrap; }
+    .view-toolbar {
+      display: grid;
+      grid-template-columns: minmax(180px, 1fr) 150px 150px;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .view-toolbar input, .view-toolbar select, .note-input {
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 9px 12px;
+      background: rgba(255,255,255,.66);
+      color: var(--ink);
+    }
+    .saved-grid, .workspace-grid, .workspace-list { display: grid; gap: 16px; }
+    .saved-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .workspace-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 28px; }
+    .workspace-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .saved-card, .workspace-panel, .metric-card { padding: 18px; }
+    .saved-card h3, .workspace-panel h3 { margin: 0 0 8px; }
+    .saved-card p, .workspace-panel p { margin: 6px 0; }
+    .saved-card .button-row, .workspace-panel .button-row { margin-top: 14px; }
+    .metric-card strong { display: block; color: var(--red); font-size: 32px; line-height: 1; }
+    .metric-card span { display: block; margin-top: 8px; color: var(--muted); font-size: 13px; }
+    .empty-state { padding: 44px 20px; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: var(--radius); }
+    .note-input { width: 100%; margin-top: 12px; font-size: 13px; }
+    @media (max-width: 1040px) {
+      .hero-grid, .intro-grid, .job-layout { grid-template-columns: 1fr; }
+      .section-head { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: repeat(3, 1fr); }
+      .art-grid, .material-grid, .risk-grid, .relation-grid, .source-grid, .inspire-grid { grid-template-columns: repeat(2, 1fr); }
+      .selector-grid, .tool-note { grid-template-columns: repeat(2, 1fr); }
+      .nav-links {
+        position: fixed;
+        top: var(--nav-h);
+        right: 16px;
+        left: 16px;
+        display: none;
+        flex-direction: column;
+        align-items: stretch;
+        background: rgba(247,242,232,.96);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 10px;
+      }
+      .nav-links.open { display: flex; }
+      .nav-route-mobile { display: block; }
+      .menu-btn { display: grid; }
+      .nav-links .nav-link { color: var(--ink-2); border-radius: 6px; text-align: left; }
+      .nav-links .nav-link:hover { color: var(--red); background: var(--red-soft); }
+      .nav-links .nav-link.active { color: var(--red); background: rgba(168,57,43,.07); }
+      .nav-links .nav-link.active::after { display: none; }
+      .saved-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .workspace-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 760px) {
+      :root { --nav-h: 60px; }
+      .container { width: min(100% - 28px, 1280px); }
+      .section { padding: 64px 0; }
+      .hero { min-height: 90vh; padding-top: 96px; }
+      .hero::before { background-position: 58% center; }
+      .hero h1 { font-size: clamp(40px, 13vw, 62px); }
+      .hero-panel { align-self: auto; }
+      .search-form { grid-template-columns: 28px minmax(0, 1fr); }
+      .search-form .primary-btn { grid-column: 1 / -1; width: 100%; }
+      .hero-source { text-align: left; justify-self: start; }
+      .stats { grid-template-columns: 1fr; }
+      .stat { border-right: 0; border-bottom: 1px solid var(--line); }
+      .art-grid, .material-grid, .risk-grid, .relation-grid, .source-grid, .inspire-grid, .selector-grid, .tool-note { grid-template-columns: 1fr; }
+      .art-card { grid-template-columns: 1fr; }
+      .nav-inner { width: calc(100% - 28px); }
+      .nav-actions { gap: 2px; padding-left: 6px; }
+      .nav-work { display: none; }
+      .nav-utility { width: 44px; justify-content: center; padding: 0; }
+      .nav-utility .utility-label { display: none; }
+      .view-toolbar, .saved-grid, .workspace-list { grid-template-columns: 1fr; }
+      .route-head { align-items: start; flex-direction: column; }
+      .route-head h1 { font-size: 34px; }
+      .use-case { grid-template-columns: 1fr; }
+      .spectrum-track { grid-template-columns: repeat(6, 160px); overflow-x: auto; }
+      .viewer-toolbar {
+        top: auto;
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        grid-auto-flow: column;
+        grid-template-columns: repeat(8, 1fr);
+        border-radius: 20px;
+      }
+      .viewer-toolbar button { width: 54px; min-width: 44px; }
+      .viewer-panel {
+        top: auto;
+        right: 10px;
+        left: 10px;
+        bottom: 76px;
+        width: auto;
+        max-height: 48dvh;
+      }
+      .mini-map { display: none; }
+      .drawer {
+        top: auto;
+        bottom: 0;
+        height: 82dvh;
+        width: 100%;
+        transform: translateY(100%);
+        border-left: 0;
+        border-top: 1px solid var(--line);
+      }
+      .drawer.open { transform: translateY(0); }
+      .compare-stage { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="nav" id="topNav">
+    <div class="container nav-inner">
+      <a class="brand" href="#/topic" aria-label="返回专题首页">文化灵感数据库</a>
+      <nav class="nav-links" id="navLinks" aria-label="主导航">
+        <button class="nav-link" data-target="home">首页</button>
+        <button class="nav-link" data-target="artworks">资源集</button>
+        <button class="nav-link active" data-target="why">专题系列</button>
+        <button class="nav-link" data-target="selector">工具库</button>
+        <button class="nav-link" data-target="inspiration">交流区</button>
+        <button class="nav-link" data-action="feedback">反馈</button>
+        <button class="nav-link nav-route-mobile" data-route="favorites">收藏库 <span class="mobile-count" id="favoriteCountMobile"></span></button>
+        <button class="nav-link nav-route-mobile" data-route="workspace">我的工作台</button>
+      </nav>
+      <div class="nav-actions">
+        <button class="nav-utility" id="globalSearchBtn" type="button" aria-label="打开搜索" aria-expanded="false"><span class="utility-mark">⌕</span><span class="utility-label">搜索</span></button>
+        <button class="nav-utility nav-favorites" data-route="favorites" type="button" aria-label="打开收藏库"><span class="utility-mark">☆</span><span class="utility-label">收藏库</span><span class="utility-count" id="favoriteCount"></span></button>
+        <button class="nav-utility nav-work" data-route="workspace" type="button" aria-label="打开我的工作台"><span class="utility-mark">◫</span><span class="utility-label">我的工作台</span></button>
+        <button class="icon-btn menu-btn" id="menuBtn" aria-label="展开导航">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="global-search" id="globalSearch" aria-hidden="true">
+    <div class="search-box">
+      <form class="search-form" id="searchForm">
+        <span aria-hidden="true">⌕</span>
+        <label class="sr-only" for="searchInput">搜索书体、作品、时代、材料或研发场景</label>
+        <input id="searchInput" type="search" autocomplete="off" placeholder="搜索书体、作品、时代、材料或研发场景">
+        <button class="primary-btn" type="submit">搜索</button>
+      </form>
+      <div class="suggest-panel" id="suggestPanel" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <main id="topicMain">
+    <section class="hero" id="home">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">专题系列 · 书法与游戏研发</p>
+          <h1>一笔入境<br>五体成世界</h1>
+          <p class="subtitle">字入游戏：五体书法的视觉语言与研发应用</p>
+          <p>本专题选取10件代表书迹，从书写材料、历史场景、社会功能和笔墨特征出发，帮助游戏从业者理解五体书法如何参与世界观塑造、场景设计、人物叙事、UI信息和动态演出。</p>
+          <div class="tag-row">
+            <span class="tag">世界观制度</span>
+            <span class="tag">场景题刻</span>
+            <span class="tag">道具文书</span>
+            <span class="tag">角色书信</span>
+            <span class="tag">UI题签</span>
+            <span class="tag">战斗演出</span>
+          </div>
+          <div class="button-row">
+            <button class="primary-btn" data-target="artworks">进入素材库</button>
+          </div>
+        </div>
+        <div class="hero-panel">
+          <div class="hero-source">
+            <strong>李唐《归去来兮图》</strong><br>
+            南宋 · 绢本设色 · 收藏与图像来源待核验
+          </div>
+        </div>
+      </div>
+      <div class="scroll-cue">向下浏览</div>
+    </section>
+
+    <section class="section" id="overview">
+      <div class="container">
+        <div class="stats" aria-label="专题数据概览">
+          <div class="stat"><strong>10</strong>代表作品</div>
+          <div class="stat"><strong>5</strong>书体系统</div>
+          <div class="stat"><strong>5</strong>书写载体</div>
+          <div class="stat"><strong>6</strong>研发岗位</div>
+          <div class="stat"><strong>9</strong>专题模块</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" id="why">
+      <div class="container intro-grid">
+        <div>
+          <p class="eyebrow">专题导语</p>
+          <h2>字因何生</h2>
+          <p class="lead">五体并不是五种孤立的字体风格。中国书法中的五体，与政治制度、书写工具、载体材料、社会身份和信息传播效率密切相关。</p>
+          <p>篆书常见于青铜礼器、石刻和官方文字体系；隶书伴随行政文书与简牍书写逐渐成熟；楷书建立了稳定清晰的书写法度；行书进入士人交往与私人书信；草书则进一步释放书写的速度、节奏与情绪。</p>
+          <ul class="question-list">
+            <li>是否符合项目时代与地域</li>
+            <li>历史上由什么身份的人使用</li>
+            <li>书写在什么材料上</li>
+            <li>承担公共信息还是私人表达</li>
+            <li>玩家是否必须快速读懂</li>
+            <li>适合静态资产还是动态演出</li>
+          </ul>
+        </div>
+        <aside class="spectrum" aria-label="书体使用光谱">
+          <h3>文化功能光谱</h3>
+          <div class="spectrum-track">
+            <span>礼制铭文</span>
+            <span>帝国石刻</span>
+            <span>行政文书</span>
+            <span>规范典籍</span>
+            <span>私人书信</span>
+            <span>情绪书写</span>
+          </div>
+          <div class="spectrum-lines">
+            <span>公共制度 → 个人表达</span>
+            <span>固定结构 → 动态节奏</span>
+            <span>信息传达 → 情绪表现</span>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section" id="wuti">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">辅助判断工具</p>
+            <h2>一字五面</h2>
+          </div>
+          <p>当你已经大致知道要做“制度、文书、书信、UI或动态演出”时，用同一个字快速比较五体的结构气质、公共/个人属性、典型载体和游戏用途。</p>
+        </div>
+        <div class="wuti-controls">
+          <div class="seg" aria-label="字形切换">
+            <button class="seg-btn active" type="button" data-word="道">道</button>
+            <button class="seg-btn" type="button" data-word="令">令</button>
+          </div>
+        </div>
+        <div class="wuti-row" id="wutiRow"></div>
+        <p class="lead" style="margin-top:18px">五体不是简单的线性进化，也不是后一种书体完全替代前一种书体。不同书体长期并存，并在不同文化和社会场景中承担不同功能。</p>
+        <div class="table-wrap" style="margin-top:22px">
+          <table id="wutiTable"></table>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" id="artworks">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">素材库主工作区</p>
+            <h2>按研发任务找书迹</h2>
+          </div>
+          <p>每件作品直接对应可落地的游戏资产：世界观制度、场景题刻、道具文书、角色关系、UI题签、技能演出和宣发视觉。先筛选，再看文化依据和使用风险。</p>
+        </div>
+        <div class="filter-block">
+          <strong>按研发岗位筛选</strong>
+          <div class="filter-row" id="roleQuickFilters" aria-label="岗位筛选"></div>
+        </div>
+        <div class="filter-block">
+          <strong>按材料/载体筛选</strong>
+          <div class="filter-row" id="materialQuickFilters" aria-label="材料筛选"></div>
+        </div>
+        <div class="filter-block">
+          <strong>按书体系统筛选</strong>
+          <div class="filter-row" id="scriptFilters" aria-label="书体筛选"></div>
+        </div>
+        <div id="artworkGroups"></div>
+      </div>
+    </section>
+
+    <section class="section" id="culture">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">深度解读</p>
+            <h2>笔墨有因</h2>
+          </div>
+          <p>书体、材料与社会功能共同决定视觉可信度。点击材料卡片可高亮对应作品，并给出游戏资产建议。</p>
+        </div>
+        <div class="material-grid" id="materialGrid"></div>
+      </div>
+    </section>
+
+    <section class="section alt" id="jobs">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">研发场景索引</p>
+            <h2>如何入戏</h2>
+          </div>
+          <p>以岗位而不是朝代作为入口，把文化素材转译为世界观、场景、道具、叙事、UI、技术美术与宣发的可执行判断。</p>
+        </div>
+        <div class="job-layout">
+          <div class="job-list" id="jobList"></div>
+          <div class="recommend-box panel" id="jobPanel"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="selector">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">辅助判断工具</p>
+            <h2>五体选择工具</h2>
+          </div>
+          <p>项目早期不确定用什么书体时，回答四个问题生成建议；结果可以加入资料夹，和十件书迹一起给团队讨论。</p>
+        </div>
+        <div class="selector-grid" id="selectorGrid"></div>
+        <div class="result-card panel" id="selectorResult"></div>
+      </div>
+    </section>
+
+    <section class="section alt" id="risks">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">使用风险</p>
+            <h2>书体使用风险</h2>
+          </div>
+          <p>书法素材的风险往往不是“好不好看”，而是语境错置、阅读效率失控和资产层级混乱。</p>
+        </div>
+        <div class="risk-grid" id="riskGrid"></div>
+      </div>
+    </section>
+
+    <section class="section" id="relations">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">跨领域关联</p>
+            <h2>字外之联</h2>
+          </div>
+          <p>从材料、社会功能和研发资产三条线索组织关联，帮助项目团队找到能组合使用的文化素材。</p>
+        </div>
+        <div class="relation-grid" id="relationGrid"></div>
+      </div>
+    </section>
+
+    <section class="section alt" id="sources">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">来源与版权</p>
+            <h2>据有所本</h2>
+          </div>
+          <p>原作收藏机构、数字图像来源、资料来源和图片授权状态分开标注；尚未确认字段明确显示“待核验”。</p>
+        </div>
+        <div class="source-grid" id="sourceGrid"></div>
+      </div>
+    </section>
+
+    <section class="section" id="inspiration">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">收藏与调用</p>
+            <h2>带走灵感</h2>
+          </div>
+          <p>收藏、资料夹、灵感卡与引用文本均保存在 localStorage；静态 Demo 不依赖后端。</p>
+        </div>
+        <div class="inspire-grid">
+          <div class="inspire-card panel">
+            <h3>项目资料夹</h3>
+            <p class="meta" id="folderSummary">尚未加入作品。</p>
+            <button class="primary-btn" id="makePack">生成项目灵感包</button>
+          </div>
+          <div class="inspire-card panel">
+            <h3>灵感卡预览</h3>
+            <div id="inspirePreview" class="meta">从作品卡点击“生成灵感卡”后会在这里预览。</div>
+            <div class="button-row" style="margin-top:12px">
+              <button class="ghost-btn" id="copyCard">复制文本</button>
+              <button class="ghost-btn" id="printCard">打印</button>
+            </div>
+          </div>
+          <div class="inspire-card panel">
+            <h3>团队动作</h3>
+            <div class="button-row">
+              <button class="ghost-btn" id="downloadTable">下载五体对比表</button>
+              <button class="ghost-btn" data-action="feedback">提交纠错</button>
+              <button class="ghost-btn" id="copyCitation">复制引用信息</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="route-view" id="favoritesView" aria-hidden="true">
+    <div class="container">
+      <div class="route-head">
+        <div><p class="eyebrow">个人收藏</p><h1>收藏库</h1><p>已收藏作品、五体推荐灵感卡与项目资料夹。</p></div>
+        <button class="ghost-btn route-back" data-route="topic">返回专题</button>
+      </div>
+      <div class="view-toolbar">
+        <input id="favoriteSearch" type="search" placeholder="搜索收藏的作品、书体、材料或时代">
+        <select id="favoriteScript"><option value="全部">全部书体</option></select>
+        <select id="favoriteRole"><option value="全部">全部岗位</option></select>
+      </div>
+      <div class="saved-grid" id="favoriteGrid"></div>
+      <div class="workspace-list" style="margin-top:28px" id="favoriteExtras"></div>
+    </div>
+  </section>
+
+  <section class="route-view" id="workspaceView" aria-hidden="true">
+    <div class="container">
+      <div class="route-head">
+        <div><p class="eyebrow">个人研究</p><h1>我的工作台</h1><p>把近期浏览、收藏、资料夹与灵感卡放在一个轻量研究界面中。</p></div>
+        <button class="ghost-btn route-back" data-route="topic">返回专题</button>
+      </div>
+      <div class="workspace-grid" id="workspaceMetrics"></div>
+      <div class="workspace-list" id="workspaceLists"></div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <p>本专题用于文化研究与游戏研发灵感参考。文物原作进入公版，不代表博物馆拍摄图像、数字扫描文件或出版物图片可以自由商用。正式项目使用前，应分别核查图像来源、授权范围和署名要求。</p>
+    </div>
+  </footer>
+
+  <div class="drawer" id="detailDrawer" aria-hidden="true"></div>
+
+  <div class="modal" id="infoModal" aria-hidden="true">
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
+      <button class="close-x" data-close="infoModal" aria-label="关闭">×</button>
+      <h2 id="infoTitle">主题视觉说明</h2>
+      <p>《归去来兮图》提供的是横向山水空间、行旅叙事与文人归隐语境。它在本页只作为首屏氛围来源，帮助建立“文字进入世界”的观看入口，不进入十件书法作品的高清查看、细节标记或对比系统。</p>
+    </div>
+  </div>
+
+  <div class="modal" id="feedbackModal" aria-hidden="true">
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="feedbackTitle">
+      <button class="close-x" data-close="feedbackModal" aria-label="关闭">×</button>
+      <h2 id="feedbackTitle">反馈</h2>
+      <form id="feedbackForm" class="form-grid">
+        <div class="field">
+          <label for="feedbackType">反馈类型</label>
+          <select id="feedbackType">
+            <option>内容错误</option><option>图片问题</option><option>版权问题</option><option>功能建议</option><option>体验问题</option><option>其他</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="feedbackText">请描述你发现的问题或建议</label>
+          <textarea id="feedbackText" required></textarea>
+        </div>
+        <div class="field">
+          <label for="feedbackContact">联系方式（可选）</label>
+          <input id="feedbackContact" type="text">
+        </div>
+        <div class="field">
+          <label for="feedbackShot">截图上传入口（静态 Demo 仅记录文件名）</label>
+          <input id="feedbackShot" type="file" accept="image/*">
+        </div>
+        <button class="primary-btn" type="submit">提交反馈</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="viewer" id="viewer" aria-hidden="true">
+    <div class="viewer-head">
+      <div><span class="viewer-title" id="viewerTitle"></span> <span id="zoomLabel" class="status-pill">100%</span></div>
+      <button class="soft-btn" id="viewerClose">关闭 Esc</button>
+    </div>
+    <div class="viewer-stage" id="viewerStage">
+      <img class="viewer-img" id="viewerImg" alt="">
+      <div class="grid-overlay" id="gridOverlay"></div>
+      <div class="scale-overlay" id="scaleOverlay">相对比例尺</div>
+      <div class="viewer-loading" id="viewerLoading">正在按需加载超高清图像...</div>
+      <div class="viewer-error" id="viewerError"><div>图像加载失败。<br><button class="primary-btn" id="retryImage">重试</button></div></div>
+    </div>
+    <div class="mini-map"><img id="miniMapImg" alt="缩略导航图"></div>
+    <div class="viewer-toolbar" aria-label="查看器工具栏">
+      <button data-vtool="detail" aria-label="查看详情">详情</button>
+      <button data-vtool="image" aria-label="图像工具">调图</button>
+      <button data-vtool="marks" aria-label="局部标记">标记</button>
+      <button data-vtool="compare" aria-label="对比作品">对比</button>
+      <button data-vtool="fav" aria-label="收藏">收藏</button>
+      <button data-vtool="folder" aria-label="加入资料夹">入夹</button>
+      <button data-vtool="cite" aria-label="引用信息">引用</button>
+      <button id="viewerToolClose" aria-label="关闭查看器">关闭</button>
+    </div>
+    <div class="viewer-panel" id="viewerPanel"></div>
+  </div>
+
+  <div class="compare-modal" id="compareModal" aria-hidden="true">
+    <div class="compare-head">
+      <div class="button-row">
+        <button class="soft-btn" id="compareSide">左右并排</button>
+        <button class="soft-btn" id="compareSlider">滑块对比</button>
+        <button class="soft-btn" id="syncZoom">同步缩放</button>
+        <button class="soft-btn" id="syncMove">同步移动</button>
+        <button class="soft-btn" id="swapCompare">交换作品</button>
+      </div>
+      <button class="primary-btn" id="closeCompare">退出对比</button>
+    </div>
+    <div class="compare-stage">
+      <div class="compare-pane" id="leftPane"><img alt="左侧对比图"></div>
+      <div class="compare-pane" id="rightPane"><img alt="右侧对比图"></div>
+    </div>
+    <div class="slider-compare" id="sliderCompare">
+      <img id="sliderBase" alt="滑块底图">
+      <img id="sliderTop" class="top-img" alt="滑块上层图">
+      <input id="sliderRange" type="range" min="0" max="100" value="50" aria-label="对比滑块">
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+  (() => {
+    "use strict";
+    const ASSET_PATHS = {
+      hero: "./素材库/首页主题/李唐_归去来兮图_hero.jpg",
+      artworks: {
+        "shi-qiang-pan": { thumb: "./素材库/缩略图/史墙盘铭文_thumb.jpg", preview: "./素材库/展示图/史墙盘铭文_preview.jpg", full: "./素材库/超高清图/史墙盘铭文_full.jpg" },
+        "langya-tai": { thumb: "./素材库/缩略图/琅琊台刻石_thumb.jpg", preview: "./素材库/展示图/琅琊台刻石_preview.jpg", full: "./素材库/超高清图/琅琊台刻石_full.jpg" },
+        "shimen-song": { thumb: "./素材库/缩略图/石门颂_thumb.jpg", preview: "./素材库/展示图/石门颂_preview.jpg", full: "./素材库/超高清图/石门颂_full.jpg" },
+        "hanjian": { thumb: "./素材库/缩略图/汉简墨迹拾遗_thumb.jpg", preview: "./素材库/展示图/汉简墨迹拾遗_preview.jpg", full: "./素材库/超高清图/汉简墨迹拾遗_full.jpg" },
+        "jiuchenggong": { thumb: "./素材库/缩略图/九成宫醴泉铭_thumb.jpg", preview: "./素材库/展示图/九成宫醴泉铭_preview.jpg", full: "./素材库/超高清图/九成宫醴泉铭_full.jpg" },
+        "youbaoshan": { thumb: "./素材库/缩略图/游包山集_thumb.jpg", preview: "./素材库/展示图/游包山集_preview.jpg", full: "./素材库/超高清图/游包山集_full.jpg" },
+        "yatou-wan": { thumb: "./素材库/缩略图/鸭头丸帖_thumb.jpg", preview: "./素材库/展示图/鸭头丸帖_preview.jpg", full: "./素材库/超高清图/鸭头丸帖_full.jpg" },
+        "mifu-chidu": { thumb: "./素材库/缩略图/米芾尺牍_thumb.jpg", preview: "./素材库/展示图/米芾尺牍_preview.jpg", full: "./素材库/超高清图/米芾尺牍_full.jpg" },
+        "caoshu-qianziwen": { thumb: "./素材库/缩略图/草书千字文_thumb.jpg", preview: "./素材库/展示图/草书千字文_preview.jpg", full: "./素材库/超高清图/草书千字文_full.jpg" },
+        "gushi-sitie": { thumb: "./素材库/缩略图/古诗四帖_thumb.jpg", preview: "./素材库/展示图/古诗四帖_preview.jpg", full: "./素材库/超高清图/古诗四帖_full.jpg" }
+      },
+      wuti: {
+        "道": { "篆": "./素材库/五体对比/道_篆.jpg", "隶": "./素材库/五体对比/道_隶.jpg", "楷": "./素材库/五体对比/道_楷.jpg", "行": "./素材库/五体对比/道_行.jpg", "草": "./素材库/五体对比/道_草.jpg" },
+        "令": { "篆": "./素材库/五体对比/令_篆.jpg", "隶": "./素材库/五体对比/令_隶.jpg", "楷": "./素材库/五体对比/令_楷.jpg", "行": "./素材库/五体对比/令_行.jpg", "草": "./素材库/五体对比/令_草.jpg" }
+      }
+    };
+    const scriptMeta = {
+      "篆": { full: "篆书", feature: "圆转、对称、制度感强", feeling: "古老、神圣、文明源流", recognition: 42, efficiency: 38, motion: 56, culture: ["先秦至秦", "青铜、石刻、印章", "礼制与权力", "圆转肃穆", "高", "低"], dev: ["世界观策划", "祭祀、封印、古制标识", "较低", "中", "易被误用为万能符咒", "史墙盘铭文、琅琊台刻石"] },
+      "隶": { full: "隶书", feature: "横势舒展、波磔明显", feeling: "历史、制度、行政、开阔", recognition: 66, efficiency: 66, motion: 50, culture: ["汉代成熟", "石刻、简牍、纸本拓本", "行政与工程纪功", "开张厚重", "高", "中"], dev: ["场景美术、道具美术", "官署、边塞、交通工程", "中", "中", "别只当复古标题", "石门颂、汉简墨迹拾遗"] },
+      "楷": { full: "楷书", feature: "结构稳定、法度清晰", feeling: "规范、理性、信息秩序", recognition: 92, efficiency: 92, motion: 42, culture: ["魏晋以后成熟", "碑刻、典籍、纸本", "规范书写", "端正清朗", "中高", "中"], dev: ["UI设计、场景美术", "任务令、规则、正式通告", "高", "中低", "不宜用书法字承载长正文", "九成宫醴泉铭、游包山集"] },
+      "行": { full: "行书", feature: "介于楷草之间，连带自然", feeling: "人物、交流、文人气质", recognition: 76, efficiency: 72, motion: 76, culture: ["魏晋以后", "书信、尺牍、手卷", "私人交往", "自然节奏", "中", "高"], dev: ["叙事设计、角色美术", "手谕、密令、角色书信", "中高", "高", "需区分人物身份与性格", "鸭头丸帖、米芾尺牍"] },
+      "草": { full: "草书", feature: "连绵、速度、节奏释放", feeling: "速度、爆发、自由、情绪", recognition: 28, efficiency: 24, motion: 96, culture: ["汉晋至唐宋", "纸本、手卷、册页", "情绪与艺术表现", "奔放强烈", "低", "极高"], dev: ["技术美术、品牌发行", "战斗特效、精神状态、短标题", "低", "极高", "不适合按钮、数值和长正文", "草书千字文、古诗四帖"] }
+    };
+    const artworks = [
+      { id: "shi-qiang-pan", title: "史墙盘铭文", alias: "墙盘铭文", author: "佚名", dynasty: "西周中期", scriptGroup: "篆书系统：金文与小篆", scriptType: "金文", material: "青铜器铭文", form: "青铜盘铭文 / 拓本", size: "待核验", museum: "宝鸡周原博物院", collectionNumber: "待核验", originalMuseum: "宝鸡周原博物院", imageSource: "用户提供素材，来源待核验", informationSource: "用户提供文档；中华珍宝馆资料线索", copyrightStatus: "待核验", keywords: ["青铜", "礼制", "宗族"], description: "西周金文成熟期的代表素材，适合建立宗族、礼制与文明源流的视觉可信度。", cultureMeaning: "公共制度与家族记忆相互嵌合，具有青铜史书式的厚重感。", gameRoles: ["世界观策划", "道具美术"], gameScenes: ["宗庙礼器", "古国谱系", "权力信物"], risks: ["不要直接称作小篆", "不宜作为长文本UI"], dispute: "传世拓本与图像来源待核验。", updatedAt: "2026-07-11", annotations: [] },
+      { id: "langya-tai", title: "琅琊台刻石", alias: "琅琊刻石", author: "传李斯", dynasty: "秦", scriptGroup: "篆书系统：金文与小篆", scriptType: "小篆", material: "山石 / 摩崖石刻", form: "刻石拓本", size: "待核验", museum: "中国国家博物馆", collectionNumber: "待核验", originalMuseum: "中国国家博物馆", imageSource: "用户提供素材，来源待核验", informationSource: "用户提供文档；中华珍宝馆资料线索", copyrightStatus: "待核验", keywords: ["帝国", "统一", "纪功"], description: "秦代公共权力、文字统一和纪功叙事的重要视觉资源。", cultureMeaning: "适合表现帝国秩序、官方宣告和公共空间中的权力语言。", gameRoles: ["世界观策划", "品牌与发行"], gameScenes: ["帝国主城", "纪功碑", "阵营权力标识"], risks: ["应区分秦篆与泛化符号", "避免将所有古文字神秘化"], dispute: "作者与版本信息按资料来源保留“传”。", updatedAt: "2026-07-11", annotations: [] },
+      { id: "shimen-song", title: "石门颂", alias: "故司隶校尉楗为杨君颂", author: "王戒", dynasty: "东汉", scriptGroup: "隶书", scriptType: "隶书", material: "山石 / 摩崖石刻", form: "整拓", size: "约261 × 205厘米（资料待核验）", museum: "汉中市博物馆", collectionNumber: "待核验", originalMuseum: "汉中市博物馆", imageSource: "用户提供素材，来源待核验", informationSource: "用户提供文档；中华珍宝馆资料线索", copyrightStatus: "待核验", keywords: ["摩崖", "交通", "地方治理"], description: "线条舒展、气势开张，适合表现地方治理、交通工程与山川公共空间。", cultureMeaning: "将行政、道路与山石环境结合，给场景美术提供尺度感。", gameRoles: ["场景美术"], gameScenes: ["山道关隘", "交通工程", "地方碑刻"], risks: ["不要只用作复古标题", "需要结合石刻环境"], dispute: "拓本版本与图像来源待核验。", updatedAt: "2026-07-11", annotations: [] },
+      { id: "hanjian", title: "汉简墨迹拾遗", alias: "汉简墨迹", author: "佚名", dynasty: "汉", scriptGroup: "隶书", scriptType: "隶书 / 简牍墨迹", material: "竹简、木简", form: "简牍集合", size: "待核验", museum: "待核验", collectionNumber: "待核验", originalMuseum: "待核验", imageSource: "用户提供素材，来源待核验", informationSource: "用户提供文档；中华珍宝馆资料线索", copyrightStatus: "待核验", keywords: ["竹简", "行政", "日常记录"], description: "比碑刻更贴近日常书写速度，可用于基层行政、仓储、军务和道具文本。", cultureMeaning: "展示制度如何进入日常记录和手边材料。", gameRoles: ["道具美术"], gameScenes: ["军政档案", "仓储标签", "竹简任务道具"], risks: ["简牍文本应避免过度装饰", "注意材料与年代"], dispute: "集合来源与具体单件信息待核验。", updatedAt: "2026-07-11", annotations: [] },
+      { id: "jiuchenggong", title: "九成宫醴泉铭", alias: "", author: "欧阳询", dynasty: "唐", scriptGroup: "楷书", scriptType: "楷书", material: "石刻拓本", form: "碑拓", size: "待核验", museum: "待核验", collectionNumber: "待核验", originalMuseum: "原碑信息待核验", imageSource: "用户提供素材，来源待核验", informationSource: "用户提供文档；中华珍宝馆资料线索", copyrightStatus: "待核验", keywords: ["法度", "碑刻", "规范"], description: "结构严谨、法度清晰，适合正式规章、碑刻、UI标题与可读性较强的文化视觉。", cultureMeaning: "把权威与阅读效率结合，是规范信息的高可信素材。", gameRoles: ["场景美术", "UI设计"], gameScenes: ["官方公告", "碑刻规则", "门额题名"], risks: ["不要整页使用书法字体替代正文", "注意楷书不等于现代正文"], dispute: "图像来源待核验。", updatedAt: "2026-07-11", annotations: [] },
+      { id: "youbaoshan", title: "游包山集", alias: "", author: "王宠", dynasty: "明", scriptGroup: "楷书", scriptType: "小楷", material: "纸本", form: "册页 / 文集", size: "待核验", museum: "待核验", collectionNumber: "待核验", originalMuseum: "待核验", imageSource: "用户提供素材，来源待核验", informationSource: "用户提供文档；中华珍宝馆资料线索", copyrightStatus: "待核验", keywords: ["文人", "纸本", "清雅"], description: "文人小楷气质清朗，适合人物手稿、书房道具与叙事碎片。", cultureMeaning: "规范中保留个人气息，适合从制度书写过渡到人物表达。", gameRoles: ["叙事设计", "角色美术"], gameScenes: ["书房文本", "人物札记", "支线剧情"], risks: ["不宜误作古代官方字体通用模板"], dispute: "资料细节待核验。", updatedAt: "2026-07-11", annotations: [] },
+      { id: "yatou-wan", title: "鸭头丸帖", alias: "", author: "王献之", dynasty: "东晋", scriptGroup: "行书与行草", scriptType: "行书 / 行草", material: "纸本", form: "尺牍", size: "待核验", museum: "上海博物馆（资料待核验）", collectionNumber: "待核验", originalMuseum: "上海博物馆（资料待核验）", imageSource: "用户提供素材，来源待核验", informationSource: "用户提供文档；中华珍宝馆资料线索", copyrightStatus: "待核验", keywords: ["私信", "医药", "关系"], description: "尺牍体量小而人物感强，适合私人书信、医药道具与关系任务。", cultureMeaning: "私人表达、身体经验和人物关系在少量文字中显现。", gameRoles: ["道具美术", "叙事设计"], gameScenes: ["人物私信", "医药道具", "生活化剧情"], risks: ["不要让所有角色使用同一种潇洒笔迹"], dispute: "版本与馆藏信息待核验。", updatedAt: "2026-07-11", annotations: [] },
+      { id: "mifu-chidu", title: "米芾尺牍", alias: "米芾尺牍集合", author: "米芾", dynasty: "北宋", scriptGroup: "行书与行草", scriptType: "行书", material: "纸本", form: "尺牍 / 多页集合", size: "待核验", museum: "待核验", collectionNumber: "待核验", originalMuseum: "待核验", imageSource: "用户提供素材，来源待核验", informationSource: "用户提供文档；中华珍宝馆资料线索", copyrightStatus: "待核验", keywords: ["文人", "书信", "节奏"], description: "强烈的文人书写节奏，适合角色身份、私人往来和品牌化文化气质。", cultureMeaning: "在可识别与个性化之间取得平衡，可帮助建立人物声线。", gameRoles: ["叙事设计", "UI设计", "品牌与发行"], gameScenes: ["角色书信", "题跋UI", "文化宣发视觉"], risks: ["需区分人物身份、性格和情绪速度"], dispute: "二玄社扫描来源与授权状态待核验。", updatedAt: "2026-07-11", annotations: [] },
+      { id: "caoshu-qianziwen", title: "草书千字文", alias: "", author: "传孙过庭 / 另有赵佶本素材", dynasty: "唐 / 北宋素材并存", scriptGroup: "草书", scriptType: "草书", material: "纸本", form: "长卷", size: "待核验", museum: "待核验", collectionNumber: "待核验", originalMuseum: "待核验", imageSource: "用户提供素材，来源待核验", informationSource: "用户提供文档；中华珍宝馆资料线索", copyrightStatus: "待核验", keywords: ["速度", "草法", "动态"], description: "草书适合表现速度、节奏和精神状态，尤其适用于动态视觉与短标题。", cultureMeaning: "强调书写动作本身，将阅读让位于节奏与情绪。", gameRoles: ["技术美术"], gameScenes: ["战斗特效", "技能演出", "精神状态"], risks: ["不要无争议写成孙过庭真迹", "不用于按钮、数值和长正文"], dispute: "作者、版本与素材对应关系需继续核验。", updatedAt: "2026-07-11", annotations: [] },
+      { id: "gushi-sitie", title: "古诗四帖", alias: "", author: "传张旭", dynasty: "唐", scriptGroup: "草书", scriptType: "狂草", material: "纸本", form: "手卷", size: "待核验", museum: "辽宁省博物馆（资料待核验）", collectionNumber: "待核验", originalMuseum: "辽宁省博物馆（资料待核验）", imageSource: "用户提供素材，来源待核验", informationSource: "用户提供文档；中华珍宝馆资料线索", copyrightStatus: "待核验", keywords: ["狂草", "爆发", "章法"], description: "适合作为高强度情绪、技能演出和宣发视觉的参考，但应避免承载可读正文。", cultureMeaning: "视觉重心从文字信息转向笔势、墨色和章法的运动。", gameRoles: ["技术美术", "品牌与发行"], gameScenes: ["终极技能", "战斗海报", "情绪化过场"], risks: ["作者与版本争议需提示", "不可强行当作通用古风字体"], dispute: "传统传为张旭，作者与版本信息需核验。", updatedAt: "2026-07-11", annotations: [] }
+    ].map(a => ({ ...a, ...ASSET_PATHS.artworks[a.id], relatedWorks: [] }));
+    const detailCopy = {
+      "shi-qiang-pan": {
+        description: "西周中期青铜盘铭文，把宗族记忆、册命关系和礼制秩序直接铸进器物里。",
+        detailBackground: "史墙盘出土于陕西扶风周原一带，铭文篇幅长、信息密，属于西周金文成熟阶段的重要实例。它的价值不只在字形，更在于把祭祀、分封、世系和器物制度拧成一个整体，让人看到早期国家如何靠文字维系秩序。",
+        projectUse: "适合做宗庙礼器、王族档案、古国谱系、文明起源遗迹、阵营源流和王权信物；也适合主线里需要“祖先誓辞”“血统证明”“古代档案残片”的道具和线索。",
+        whyFit: "它天然同时拥有器物、文字和制度三层信息，既能交代历史厚度，也能给青铜、铸刻、环列和铭文带提供稳定的视觉依据。对游戏来说，这类素材最适合承载世界观根系，而不是被当成单独的字体图案。",
+        useRecommendation: "建议提取圆厚字势、边栏排布、铸造质感和围绕器形的阅读路径，做局部铭文带、器物纹样、界面章记或考据图层。不要把整段铭文直接压进普通文本框。"
+      },
+      "langya-tai": {
+        description: "秦统一后的石刻纪功与宣示文本，把帝国权力直接落到山海之间。",
+        detailBackground: "琅琊台刻石与秦始皇东巡、文字统一和纪功叙事紧密相关，现存多为残石与拓本线索。它最重要的意义，是让小篆不再只是书体，而成为帝国命令、制度发布和公共空间宣告的一部分。",
+        projectUse: "适合做帝国主城、纪功碑、官方公告、边境界碑、法度文书、阵营权力标识和世界观里最早的一批“官方语言”资产。",
+        whyFit: "它有很强的公共性和权威感，字形整齐、秩序明确，适合表达统一、控制、扩张和纪功。对于偏宏大的古代政权设定，它比任何抽象的古风符号都更有落点。",
+        useRecommendation: "重点提取竖向排布、石刻残损、山海纪功的场景感和小篆的统一尺度，适合做碑刻、关隘、诏令牌和官方封条。不要把它直接和金文混用。"
+      },
+      "shimen-song": {
+        description: "东汉摩崖隶书，把地方治理、交通工程和山石空间绑在一起的碑刻素材。",
+        detailBackground: "石门颂与褒斜道、地方工程和交通治理密切相关，是把书法放进山川环境里的典型。它不靠室内陈列成立，而是靠地形、路径和公共可见性成立，所以特别能说明文字如何成为现场证据。",
+        projectUse: "适合做关隘、古道、山门、驿站、交通工程碑、地方治理告示和带有空间尺度感的公共场景。",
+        whyFit: "它的横势舒展、笔势开张，和山道、石壁、栈道这些环境特别合拍。对场景团队来说，这类素材最有价值的不是单字，而是“文字如何落在地形里”。",
+        useRecommendation: "建议保留摩崖不平整、拓片黑白差和疏密关系，用来做场景碑文、地形提示或关隘叙事证据。别做成平滑复古标题。"
+      },
+      "hanjian": {
+        description: "汉代简牍墨迹的集合形态，最接近日常办公和基层治理的真实书写。",
+        detailBackground: "汉简来自官府、军营、驿站、仓储和私人记录等不同场景，内容覆盖文书、账目、军令、药方和备忘。竹木材料决定了它的字小、行密、速度快，也让我们看见书写怎样服务于现实事务而不是纯审美。",
+        projectUse: "适合做军政档案、仓储标签、任务简牍、地图注记、边关记录、角色手持线索和解谜碎片。",
+        whyFit: "它离“可拿在手上、可被翻读、可在剧情里流转”的游戏道具最近，信息密度也最像研发中真正会用到的文本资产。比起碑刻，它更能承接“玩家发现了一条线索”的体验。",
+        useRecommendation: "建议保留竹木条分栏、绑绳、墨迹深浅和短文本结构，做成局部道具或任务材料。不要把它装饰成大段飘逸书法。"
+      },
+      "jiuchenggong": {
+        description: "唐楷代表作，把纪事、法度和可读性一起做到极稳。",
+        detailBackground: "九成宫醴泉铭由魏徵撰文、欧阳询书写，核心是唐太宗九成宫中的纪事与颂扬文本。它最适合说明楷书如何在唐代变成规范、权威和秩序的标准范本。",
+        projectUse: "适合做门额题名、官方通告、规则碑、学院或官署标识、系统标题、任务说明页和需要稳定阅读秩序的 UI 层。",
+        whyFit: "它结构严谨、笔画清朗、层次稳定，能把“正式”“可信”“可读”三件事同时交代清楚。对游戏 UI 和正式世界观说明来说，这种书体很实用。",
+        useRecommendation: "正文仍建议用现代字体，九成宫更适合标题、题签、章题、碑刻和层级提示。不要整页拿书法字替代长文阅读。"
+      },
+      "youbaoshan": {
+        description: "明代文人小楷的清雅样本，更接近书房、册页和个人阅读场景。",
+        detailBackground: "游包山集体现的是晚明文人的书写气质：文集、游记、题跋、手稿和私人的阅读节奏。它不像碑刻那样面向公共纪功，而是把个人气息、书房环境和审美修养收束在细小字里。",
+        projectUse: "适合做书房文本、人物札记、藏书册页、游记残页、支线剧情材料、角色档案和收藏向道具。",
+        whyFit: "它的优势在于“近看有温度”，适合给文人、学者、藏书家、隐士这类角色建立身份层次。对叙事和角色美术来说，这类素材很适合做可读但不喧宾夺主的文本。",
+        useRecommendation: "控制字号和观看距离，把它当成私密文字而不是宣传大字。它适合出现在桌案、手札、册页边注里。"
+      },
+      "yatou-wan": {
+        description: "东晋尺牍里最有生活气的一类，体量小，但人物关系很清楚。",
+        detailBackground: "鸭头丸帖属于王献之尺牍系统所代表的私人往来书写，内容带有问候、药事和日常交流的痕迹。它的价值不在篇幅，而在于把身体状态、亲密关系和书写速度一并留下来。",
+        projectUse: "适合做人物私信、医药道具、关系任务、家族线索、临时求助信和生活化剧情碎片。",
+        whyFit: "它很适合告诉玩家：古代人物的情感不是靠长篇独白表达，而是靠短笺、药方和来往细节显出来。对角色叙事来说，这种小纸片特别能承接亲近感。",
+        useRecommendation: "建议做小尺幅、折痕、题签和收信关系，不同角色尽量保留不同笔迹。不要把它画成统一风格的“潇洒古风字”。"
+      },
+      "mifu-chidu": {
+        description: "北宋文人尺牍和题跋的典型，个人风格和社交网络都很强。",
+        detailBackground: "米芾的尺牍体现了北宋文人的交游、鉴藏和题跋习惯，也带出很强的个人风格。他的字不是单纯为了写清楚，而是连同性格、判断、速度和审美偏好一起出现。",
+        projectUse: "适合做角色书信、题跋标签、鉴藏记录、文人社交系统、文化宣发题签和带个性的 NPC 私信。",
+        whyFit: "它在“可识别”和“个性化”之间平衡得很好，既能传达人物声线，也不会像狂草那样直接牺牲阅读。对叙事和品牌包装都很实用。",
+        useRecommendation: "重点提取欹侧、连带、墨色轻重和题跋布局，适合做身份明确的人物文本。不要把它泛化成所有书信都能套用的统一书法。"
+      },
+      "caoshu-qianziwen": {
+        description: "以蒙学文本为载体的草书长卷，最适合看笔势和速度，不适合看字面内容。",
+        detailBackground: "《千字文》本来是教育和识字材料，变成草书长卷后，重点就从逐字阅读转到持续书写的运动轨迹。它非常适合说明草书如何把规范文本转化成节奏、速度和身体动作。",
+        projectUse: "适合做技能笔势、运动轨迹、精神状态、战斗演出、修炼界面、短标题和动态视觉资源。",
+        whyFit: "它的可用价值不在文字本身，而在笔势拆解后的运动逻辑。对技术美术和动效来说，这种素材尤其适合转成轨迹、速度曲线、墨点粒度和节奏变化。",
+        useRecommendation: "把它当动作素材，不要当正文贴图。需要表达信息时，正文另用可读字体，草书负责情绪和动作。"
+      },
+      "gushi-sitie": {
+        description: "传张旭的狂草代表，古诗片段在这里变成高强度的情绪和章法展示。",
+        detailBackground: "古诗四帖通常被视为张旭狂草系统的重要代表，题材来自古诗，重点却不在诗意复述，而在连绵笔势、飞白、墨色和节奏爆发。它非常能说明草书如何把文字推到情绪峰值。",
+        projectUse: "适合做终极技能、角色觉醒、战斗海报、情绪过场、宣发主视觉和高等级文化资产。",
+        whyFit: "它一眼就有爆发力，最适合做“情绪到顶”的那一下。对游戏来说，它不是通用古风字库，而是把书法转成动作画面的强情绪参考。",
+        useRecommendation: "建议保留作者与版本争议提示，借鉴长卷节奏、字群疏密、飞白和纸色变化。不要把它当成可通吃的标题字。"
+      }
+    };
+    artworks.forEach(a => Object.assign(a, detailCopy[a.id] || {}));
+    const groups = [
+      ["篆书系统：金文与小篆", ["shi-qiang-pan", "langya-tai"]],
+      ["隶书", ["shimen-song", "hanjian"]],
+      ["楷书", ["jiuchenggong", "youbaoshan"]],
+      ["行书与行草", ["yatou-wan", "mifu-chidu"]],
+      ["草书", ["caoshu-qianziwen", "gushi-sitie"]]
+    ];
+    const jobs = {
+      "全部": { works: artworks.map(a => a.id), advice: "以研发资产为入口组合书体：公共制度用篆隶楷，人物关系用楷行，动态情绪用行草。" },
+      "世界观策划": { works: ["shi-qiang-pan","langya-tai"], advice: "优先建立制度、宗族、国家权力和文字统一逻辑，避免把所有古文字写成神秘符号。" },
+      "场景美术": { works: ["shimen-song","jiuchenggong"], advice: "关注书写与建筑、山石、碑刻尺度的关系，利用材料让文字自然进入空间。" },
+      "道具美术": { works: ["shi-qiang-pan","hanjian","yatou-wan"], advice: "让器物、竹简、信札承担不同信息密度，避免同一字体铺满所有道具。" },
+      "叙事设计": { works: ["youbaoshan","yatou-wan","mifu-chidu"], advice: "用书迹区分人物身份、关系距离和情绪速度，尺牍尤其适合任务线索。" },
+      "UI设计": { works: ["jiuchenggong","mifu-chidu"], advice: "正文保持现代字体，书法原迹用于标题、题跋、章印和层级提示。" },
+      "技术美术": { works: ["caoshu-qianziwen","gushi-sitie"], advice: "把草书拆解为笔势、墨色、速度和粒度，而不是直接把不可读文字贴到界面上。" },
+      "品牌与发行": { works: ["langya-tai","mifu-chidu","gushi-sitie"], advice: "宣发可更强调气质，但仍需交代书体、时代、材料和使用语境。" }
+    };
+    const state = {
+      word: localStorage.getItem("wutiWord") || "道",
+      mode: "culture",
+      favorites: new Set(JSON.parse(localStorage.getItem("favorites") || "[]")),
+      folder: new Set(JSON.parse(localStorage.getItem("folder") || "[]")),
+      currentArtwork: null,
+      compareBase: null,
+      selector: JSON.parse(localStorage.getItem("selectorState") || "{}"),
+      libraryScript: "全部",
+      libraryRole: "全部",
+      libraryMaterial: "全部",
+      recent: JSON.parse(localStorage.getItem("recentArtworks") || "[]"),
+      notes: JSON.parse(localStorage.getItem("favoriteNotes") || "{}"),
+      lastTopicScroll: Number(localStorage.getItem("topicScroll") || 0),
+      pendingTarget: null,
+      pendingHighlight: null
+    };
+    const $ = (sel, root = document) => root.querySelector(sel);
+    const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+    const byId = id => artworks.find(a => a.id === id);
+    const toast = msg => {
+      const el = $("#toast");
+      el.textContent = msg;
+      el.classList.add("show");
+      clearTimeout(toast.t);
+      toast.t = setTimeout(() => el.classList.remove("show"), 1800);
+    };
+    const persist = () => {
+      localStorage.setItem("favorites", JSON.stringify([...state.favorites]));
+      localStorage.setItem("folder", JSON.stringify([...state.folder]));
+      localStorage.setItem("wutiWord", state.word);
+      localStorage.setItem("selectorState", JSON.stringify(state.selector));
+      localStorage.setItem("recentArtworks", JSON.stringify(state.recent));
+      localStorage.setItem("favoriteNotes", JSON.stringify(state.notes));
+      localStorage.setItem("topicScroll", String(state.lastTopicScroll));
+      updateFolderSummary();
+      updateGlobalUi();
+    };
+    function scrollToId(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      $("#navLinks").classList.remove("open");
+      setTimeout(() => {
+        el.classList.add("highlight");
+        setTimeout(() => el.classList.remove("highlight"), 1400);
+      }, 450);
+    }
+    function topicRoute() { return location.hash.replace(/^#\/?/, "") || "topic"; }
+    function setRoute(route) {
+      if (topicRoute() === "topic" && route !== "topic") {
+        state.lastTopicScroll = scrollY;
+        localStorage.setItem("topicScroll", String(state.lastTopicScroll));
+      }
+      location.hash = `#/${route}`;
+    }
+    function navigateTopic(target) {
+      if (topicRoute() === "topic") {
+        scrollToId(target);
+        return;
+      }
+      state.pendingTarget = target;
+      setRoute("topic");
+    }
+    function updateGlobalUi() {
+      const count = [...state.favorites].filter(id => byId(id)).length;
+      const badge = $("#favoriteCount");
+      const mobileBadge = $("#favoriteCountMobile");
+      if (badge) { badge.textContent = count; badge.classList.toggle("show", count > 0); }
+      if (mobileBadge) mobileBadge.textContent = count > 0 ? count : "";
+      if (topicRoute() === "favorites") renderFavorites();
+      if (topicRoute() === "workspace") renderWorkspace();
+    }
+    function handleRoute() {
+      const route = ["favorites", "workspace"].includes(topicRoute()) ? topicRoute() : "topic";
+      const isTopic = route === "topic";
+      document.body.classList.toggle("route-alt", !isTopic);
+      $("#favoritesView").classList.toggle("open", route === "favorites");
+      $("#favoritesView").setAttribute("aria-hidden", String(route !== "favorites"));
+      $("#workspaceView").classList.toggle("open", route === "workspace");
+      $("#workspaceView").setAttribute("aria-hidden", String(route !== "workspace"));
+      $$(".nav-link[data-target]").forEach(btn => btn.classList.toggle("active", isTopic && btn.dataset.target === "why"));
+      if (route === "favorites") { document.title = "收藏库｜文化灵感数据库"; renderFavorites(); window.scrollTo(0, 0); }
+      if (route === "workspace") { document.title = "我的工作台｜文化灵感数据库"; renderWorkspace(); window.scrollTo(0, 0); }
+      if (isTopic) {
+        document.title = "字入游戏｜专题系列";
+        requestAnimationFrame(() => {
+          const target = state.pendingTarget;
+          const highlightId = state.pendingHighlight;
+          state.pendingTarget = null;
+          state.pendingHighlight = null;
+          if (target) scrollToId(target);
+          else if (state.lastTopicScroll) window.scrollTo(0, state.lastTopicScroll);
+          if (highlightId) setTimeout(() => document.querySelector(`[data-art-id="${highlightId}"]`)?.classList.add("highlight"), 500);
+        });
+      }
+      $("#navLinks").classList.remove("open");
+    }
+    function initNav() {
+      const nav = $("#topNav");
+      const onScroll = () => {
+        nav.classList.toggle("scrolled", scrollY > 20);
+        document.documentElement.style.setProperty("--scroll", String(scrollY));
+      };
+      addEventListener("scroll", onScroll, { passive: true });
+      onScroll();
+      $("#menuBtn").addEventListener("click", () => $("#navLinks").classList.toggle("open"));
+      $$("[data-target]").forEach(btn => btn.addEventListener("click", () => navigateTopic(btn.dataset.target)));
+      $$("[data-action='feedback']").forEach(btn => btn.addEventListener("click", () => { $("#navLinks").classList.remove("open"); openFeedback(); }));
+      $$('[data-route]').forEach(btn => btn.addEventListener("click", () => setRoute(btn.dataset.route)));
+      $("#topNav .brand").addEventListener("click", e => { e.preventDefault(); navigateTopic("home"); });
+      addEventListener("hashchange", handleRoute);
+    }
+    function initSearch() {
+      const input = $("#searchInput");
+      const panel = $("#suggestPanel");
+      const search = $("#globalSearch");
+      const launcher = $("#globalSearchBtn");
+      const items = [
+        ...artworks.map(a => ({ type: "作品", title: a.title, desc: `${a.dynasty} · ${a.scriptType} · ${a.material}`, target: "artworks", id: a.id, keys: [a.title, a.alias, a.author, a.dynasty, a.scriptType, a.material, ...a.keywords, ...a.gameRoles, ...a.gameScenes] })),
+        ...Object.keys(scriptMeta).map(k => ({ type: "书体", title: scriptMeta[k].full, desc: scriptMeta[k].feeling, target: "wuti", keys: [k, scriptMeta[k].full, scriptMeta[k].feature, scriptMeta[k].feeling] })),
+        ...Object.keys(jobs).filter(j => j !== "全部").map(j => ({ type: "岗位", title: j, desc: jobs[j].advice, target: "artworks", job: j, keys: [j, jobs[j].advice] })),
+        ...["青铜", "山石", "竹简", "纸本", "绢本", "石刻", "竹木"].map(m => ({ type: "材料类型", title: m, desc: "在素材库中筛出同类载体和可转化资产", target: "artworks", material: m, keys: [m] }))
+      ];
+      const norm = s => String(s || "").toLowerCase().replace(/\s/g, "");
+      function match(q) {
+        const n = norm(q);
+        if (!n) return items.slice(0, 8);
+        return items.filter(it => it.keys.some(k => norm(k).includes(n)) || norm(it.title).includes(n)).slice(0, 14);
+      }
+      function render(q) {
+        const found = match(q);
+        if (!found.length) {
+          panel.innerHTML = `<div class="suggest-item"><strong>没有直接结果</strong><span>可尝试：篆书、石刻、世界观、UI设计、草书千字文</span></div>`;
+        } else {
+          const grouped = found.reduce((a, x) => ((a[x.type] ||= []).push(x), a), {});
+          panel.innerHTML = Object.entries(grouped)
+            .map(([type, arr]) => `<div class="suggest-group"><h4>${type}</h4>${arr.map((it, i) => `<button class="suggest-item" data-hit="${type}-${i}"><strong>${it.title}</strong><span>${it.desc}</span></button>`).join("")}</div>`).join("");
+          const flat = found;
+          $$(".suggest-item[data-hit]", panel).forEach((btn, i) => btn.addEventListener("click", () => activateHit(flat[i])));
+        }
+        panel.classList.add("open");
+      }
+      function activateHit(it) {
+        panel.classList.remove("open");
+        search.classList.remove("open");
+        search.setAttribute("aria-hidden", "true");
+        launcher.setAttribute("aria-expanded", "false");
+        if (it.job) {
+          state.libraryRole = it.job;
+          renderArtworks();
+        }
+        if (it.material) {
+          state.libraryMaterial = it.material;
+          renderArtworks();
+        }
+        if (it.id) state.pendingHighlight = it.id;
+        navigateTopic(it.target);
+      }
+      input.addEventListener("input", () => render(input.value));
+      input.addEventListener("focus", () => render(input.value));
+      launcher.addEventListener("click", () => {
+        const willOpen = !search.classList.contains("open");
+        search.classList.toggle("open", willOpen);
+        search.setAttribute("aria-hidden", String(!willOpen));
+        launcher.setAttribute("aria-expanded", String(willOpen));
+        if (willOpen) {
+          input.focus();
+          render(input.value);
+        } else panel.classList.remove("open");
+      });
+      document.addEventListener("click", e => {
+        if (!e.target.closest(".global-search") && !e.target.closest("#globalSearchBtn")) {
+          search.classList.remove("open");
+          search.setAttribute("aria-hidden", "true");
+          launcher.setAttribute("aria-expanded", "false");
+          panel.classList.remove("open");
+        }
+      });
+      document.addEventListener("keydown", e => {
+        if (e.key === "Escape") {
+          search.classList.remove("open");
+          search.setAttribute("aria-hidden", "true");
+          launcher.setAttribute("aria-expanded", "false");
+          panel.classList.remove("open");
+        }
+      });
+      $("#searchForm").addEventListener("submit", e => {
+        e.preventDefault();
+        const first = match(input.value)[0];
+        if (first) activateHit(first);
+        else render(input.value);
+      });
+    }
+    function initWutiControls() {
+      $$(".seg-btn[data-word]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const word = btn.dataset.word;
+          if (!ASSET_PATHS.wuti[word]) return;
+          state.word = word;
+          try { localStorage.setItem("wutiWord", word); } catch (_) {}
+          renderWuti();
+        });
+      });
+    }
+    function renderWuti() {
+      $$(".seg-btn[data-word]").forEach(b => b.classList.toggle("active", b.dataset.word === state.word));
+      const row = $("#wutiRow");
+      row.innerHTML = ["篆","隶","楷","行","草"].map(s => {
+        const m = scriptMeta[s];
+        const modeBlock = state.mode === "culture"
+          ? `<div class="mini-tags">
+              <span>时代：${m.culture[0]}</span>
+              <span>材料：${m.culture[1]}</span>
+              <span>功能：${m.culture[2]}</span>
+              <span>公共性：${m.culture[4]}</span>
+              <span>个人性：${m.culture[5]}</span>
+            </div>
+            <p class="meta">看点：${m.culture[3]}</p>`
+          : `<div class="mini-tags">
+              <span>岗位：${m.dev[0]}</span>
+              <span>资产：${m.dev[1]}</span>
+              <span>风险：${m.dev[4]}</span>
+              <span>相关作品：${m.dev[5]}</span>
+            </div>
+            <p class="meta">使用建议：${m.full}更适合${m.dev[1]}，不适合脱离载体和语境直接套用。</p>`;
+        return `<article class="wuti-card card" data-script="${s}">
+          <div class="glyph-box"><img src="${ASSET_PATHS.wuti[state.word][s]}" alt="${state.word}字${m.full}字形"></div>
+          <h3>${m.full}</h3>
+          <p class="meta">${m.feature}</p>
+          <p>${state.word === "道" ? ({篆:"古老、神圣、文明源流、仪式。",隶:"历史、制度、行政、开阔。",楷:"规范、理性、法度、信息秩序。",行:"人物、交流、文人气质、自然节奏。",草:"速度、爆发、自由、情绪表现。"}[s]) : ({篆:"神授、古制、祭令、契约。",隶:"军政、官署、边关文书。",楷:"任务令、规则、正式通告。",行:"手谕、密令、角色书信。",草:"急令、战斗指示、动态演出。"}[s])}</p>
+          ${modeBlock}
+        </article>`;
+      }).join("");
+      $$(".wuti-card", row).forEach(card => card.addEventListener("click", () => openWutiDetail(card.dataset.script)));
+      if (state.mode === "culture") {
+        $("#wutiTable").innerHTML = `<thead><tr>${["书体","基本结构","时代","材料/载体","社会功能","公共性","个人性"].map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>${
+          ["篆","隶","楷","行","草"].map(s => {
+            const m = scriptMeta[s];
+            return `<tr><td>${m.full}</td><td>${m.feature}</td><td>${m.culture[0]}</td><td>${m.culture[1]}</td><td>${m.culture[2]}</td><td>${m.culture[4]}</td><td>${m.culture[5]}</td></tr>`;
+          }).join("")
+        }</tbody>`;
+      } else {
+        $("#wutiTable").innerHTML = `<thead><tr>${["书体","基本结构","适用岗位","推荐资产/场景","使用风险","相关代表作品"].map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>${
+          ["篆","隶","楷","行","草"].map(s => {
+            const m = scriptMeta[s];
+            return `<tr><td>${m.full}</td><td>${m.feature}</td><td>${m.dev[0]}</td><td>${m.dev[1]}</td><td>${m.dev[4]}</td><td>${m.dev[5]}</td></tr>`;
+          }).join("")
+        }</tbody>`;
+      }
+      persist();
+    }
+    function openWutiDetail(script) {
+      const m = scriptMeta[script];
+      openDrawer(`<button class="close-x" data-drawer-close aria-label="关闭">×</button><h2>${state.word} · ${m.full}</h2>
+        <p>${m.feeling}</p>
+        <h3>视觉结构</h3><p>${m.feature}</p>
+        <h3>典型材料</h3><p>${m.culture[1]}</p>
+        <h3>文化语义</h3><p>${m.culture[2]}，${m.culture[3]}。</p>
+        <h3>适合岗位</h3><p>${m.dev[0]}</p>
+        <h3>推荐使用位置</h3><p>${m.dev[1]}</p>
+        <h3>不建议使用位置</h3><p>${m.dev[4]}</p>
+        <h3>相关代表作品</h3><p>${m.dev[5]}</p>`);
+    }
+    function materialHit(a, material) {
+      if (material === "全部") return true;
+      const text = `${a.material} ${a.form} ${a.keywords.join(" ")} ${a.gameScenes.join(" ")}`;
+      const map = {
+        "青铜": ["青铜"],
+        "山石": ["山石", "摩崖", "石刻", "碑拓"],
+        "石刻": ["山石", "摩崖", "石刻", "碑拓"],
+        "竹木": ["竹简", "木简", "竹木", "简牍"],
+        "竹简": ["竹简", "木简", "简牍"],
+        "纸本": ["纸本", "尺牍", "手卷", "册页", "文集"],
+        "绢本": ["绢本"]
+      };
+      return (map[material] || [material]).some(k => text.includes(k));
+    }
+    function roleHit(a, role) {
+      return role === "全部" || a.gameRoles.includes(role) || jobs[role]?.works.includes(a.id);
+    }
+    function scriptHit(a, script) {
+      return script === "全部" || a.scriptGroup === script;
+    }
+    function renderLibraryFilters() {
+      const roleFilters = Object.keys(jobs);
+      $("#roleQuickFilters").innerHTML = roleFilters.map(r => `<button class="chip ${state.libraryRole === r ? "active" : ""}" data-role-filter="${r}">${r}</button>`).join("");
+      $$("#roleQuickFilters .chip").forEach(b => b.addEventListener("click", () => {
+        state.libraryRole = b.dataset.roleFilter;
+        renderArtworks();
+      }));
+      const materials = ["全部", "青铜", "山石", "石刻", "竹木", "竹简", "纸本", "绢本"];
+      $("#materialQuickFilters").innerHTML = materials.map(m => `<button class="chip ${state.libraryMaterial === m ? "active" : ""}" data-material-filter="${m}">${m}</button>`).join("");
+      $$("#materialQuickFilters .chip").forEach(b => b.addEventListener("click", () => {
+        state.libraryMaterial = b.dataset.materialFilter;
+        renderArtworks();
+      }));
+    }
+    function renderArtworks(filter = state.libraryScript) {
+      state.libraryScript = filter;
+      renderLibraryFilters();
+      const filters = ["全部", ...new Set(artworks.map(a => a.scriptGroup))];
+      $("#scriptFilters").innerHTML = filters.map(f => `<button class="chip ${f === filter ? "active" : ""}" data-filter="${f}">${f}</button>`).join("");
+      $$(".chip", $("#scriptFilters")).forEach(b => b.addEventListener("click", () => renderArtworks(b.dataset.filter)));
+      const html = groups.map(([name, ids]) => {
+        if (!scriptHit({ scriptGroup: name }, filter)) return "";
+        const filtered = ids.map(id => byId(id)).filter(a => roleHit(a, state.libraryRole) && materialHit(a, state.libraryMaterial));
+        if (!filtered.length) return "";
+        return `<div class="art-group"><h3>${name}</h3><div class="art-grid">${filtered.map(a => artCard(a)).join("")}</div></div>`;
+      }).join("");
+      $("#artworkGroups").innerHTML = html || `<div class="panel" style="padding:22px"><strong>没有匹配的书迹。</strong><p class="meta">减少一个筛选条件，或在搜索框中试试“场景题刻”“人物私信”“战斗特效”。</p></div>`;
+      bindArtworkButtons();
+    }
+    function assetHint(a) {
+      const map = {
+        "shi-qiang-pan": "宗庙礼器、古国谱系、阵营源流、权力信物",
+        "langya-tai": "帝国主城、纪功碑、官方公告、阵营权力标识",
+        "shimen-song": "山道关隘、交通工程、地方碑刻、环境叙事",
+        "hanjian": "军政档案、仓储标签、任务竹简、道具线索",
+        "jiuchenggong": "门额题名、规则碑、官方UI标题、正式通告",
+        "youbaoshan": "书房文本、人物札记、藏书册页、支线剧情",
+        "yatou-wan": "人物私信、医药道具、关系任务、生活化剧情",
+        "mifu-chidu": "角色书信、题跋UI、文人社交、宣发题签",
+        "caoshu-qianziwen": "技能笔势、运动轨迹、精神状态、动态演出",
+        "gushi-sitie": "终极技能、战斗海报、情绪过场、宣发主视觉"
+      };
+      return map[a.id] || a.gameScenes.join("、");
+    }
+    function relationHint(a) {
+      const pair = groups.find(g => g[1].includes(a.id))?.[1].filter(id => id !== a.id).map(id => byId(id).title).join("、");
+      return pair || "可按同类材料和岗位继续组合";
+    }
+    function artCard(a) {
+      return `<article class="art-card card" data-art-id="${a.id}">
+        <button class="art-media" data-open-viewer="${a.id}" aria-label="查看${a.title}超高清细节">
+          <img loading="lazy" src="${a.preview}" alt="${a.title}">
+          <span class="media-badge">查看细节</span>
+        </button>
+        <div class="art-body">
+          <h4>${a.title}</h4>
+          <div class="meta">${a.author} · ${a.dynasty} · ${a.scriptType}<br>${a.material} · ${a.museum}</div>
+          <div class="mini-tags">${a.keywords.map(k => `<span>${k}</span>`).join("")}${a.dispute ? `<span class="status-pill warn">争议/待核验</span>` : ""}</div>
+          <div class="use-case">
+            <div><b>文化依据</b>${a.cultureMeaning}</div>
+            <div><b>可转化资产</b>${assetHint(a)}</div>
+            <div><b>关联线索</b>${relationHint(a)}</div>
+          </div>
+          <div class="art-actions">
+            <button data-compare="${a.id}">加入对比</button>
+            <button data-fav="${a.id}" class="${state.favorites.has(a.id) ? "active" : ""}">${state.favorites.has(a.id) ? "已收藏" : "收藏"}</button>
+            <button data-folder="${a.id}" class="${state.folder.has(a.id) ? "active" : ""}">${state.folder.has(a.id) ? "已入资料夹" : "加入资料夹"}</button>
+            <button data-card="${a.id}">灵感卡</button>
+          </div>
+          <div class="art-footer"><button class="art-archive" data-detail="${a.id}">查看作品档案 →</button></div>
+        </div>
+      </article>`;
+    }
+    function bindArtworkButtons() {
+      $$("[data-open-viewer]").forEach(b => b.addEventListener("click", () => openViewer(b.dataset.openViewer)));
+      $$("[data-detail]").forEach(b => b.addEventListener("click", () => openArtworkDetail(b.dataset.detail)));
+      $$("[data-fav]").forEach(b => b.addEventListener("click", () => toggleSet(state.favorites, b.dataset.fav, "收藏")));
+      $$("[data-folder]").forEach(b => b.addEventListener("click", () => toggleSet(state.folder, b.dataset.folder, "资料夹")));
+      $$("[data-card]").forEach(b => b.addEventListener("click", () => makeInspireCard(b.dataset.card)));
+      $$("[data-compare]").forEach(b => b.addEventListener("click", () => startCompareFrom(b.dataset.compare)));
+    }
+    function toggleSet(set, id, label) {
+      set.has(id) ? set.delete(id) : set.add(id);
+      persist();
+      renderArtworks(state.libraryScript);
+      toast(`${byId(id).title}${set.has(id) ? "已加入" : "已移出"}${label}`);
+    }
+    function openArtworkDetail(id) {
+      const a = byId(id);
+      openDrawer(`<button class="close-x" data-drawer-close aria-label="关闭">×</button><h2>${a.title}</h2>${artworkDetailContent(a)}`);
+    }
+    function artworkDetailContent(a) {
+      return `
+        <h3>作品简介</h3>
+        <p>${a.description || "待核验"}</p>
+        <h3>文化背景</h3>
+        <p>${a.detailBackground || a.cultureMeaning || "待核验"}</p>
+        <h3>项目用途推荐</h3>
+        <p>${a.projectUse || assetHint(a)}</p>
+        <h3>为什么适合</h3>
+        <p>${a.whyFit || a.cultureMeaning || "待核验"}</p>
+        <h3>落地建议</h3>
+        <p>${a.useRecommendation || "建议结合场景、载体和角色身份再做细化。"}</p>
+        <h3>适合岗位与场景</h3>
+        <p>${a.gameRoles.join("、")}；${a.gameScenes.join("、")}</p>
+        <h3>可组合参考</h3>
+        <p>${relationHint(a)}</p>
+        <h3>使用风险</h3><ul>${a.risks.map(r => `<li>${r}</li>`).join("")}</ul>
+        <h3>基础信息</h3>
+        ${detailFields(a).map(([k,v]) => `<p><strong>${k}</strong><br>${v || "待核验"}</p>`).join("")}`;
+    }
+    function detailFields(a) {
+      return [["别名", a.alias], ["作者", a.author], ["时代", a.dynasty], ["书体", a.scriptType], ["材质", a.material], ["形制", a.form], ["尺寸", a.size], ["收藏机构", a.museum], ["藏品编号", a.collectionNumber], ["原作收藏机构", a.originalMuseum], ["数字图像来源", a.imageSource], ["学术争议", a.dispute], ["版权状态", a.copyrightStatus], ["资料来源", a.informationSource], ["更新时间", a.updatedAt]];
+    }
+    function openDrawer(html) {
+      const d = $("#detailDrawer");
+      d.innerHTML = html;
+      d.classList.add("open");
+      d.setAttribute("aria-hidden", "false");
+      $("[data-drawer-close]", d)?.addEventListener("click", closeDrawer);
+    }
+    function closeDrawer() {
+      const d = $("#detailDrawer");
+      d.classList.remove("open");
+      d.setAttribute("aria-hidden", "true");
+    }
+    function renderCulture() {
+      const materials = [
+        ["青铜", "铸造感、厚重感、礼制感", ["shi-qiang-pan"], "礼器、权力信物、文明源流"],
+        ["山石", "体量感、公共性、环境性", ["langya-tai","shimen-song","jiuchenggong"], "主城碑刻、山道刻石、纪功空间"],
+        ["竹木", "实用、快速、行政属性", ["hanjian"], "档案、军令、仓储、任务道具"],
+        ["纸本", "笔速、墨色、个人痕迹", ["youbaoshan","yatou-wan","mifu-chidu","caoshu-qianziwen","gushi-sitie"], "书信、手卷、题跋、剧情线索"],
+        ["绢本", "精致、珍贵、收藏属性", [], "本页仅用于首页氛围，不进入查看器"]
+      ];
+      $("#materialGrid").innerHTML = materials.map(m => `<button class="material-card panel" data-material="${m[0]}"><h3>${m[0]}</h3><p>${m[1]}</p><p class="meta">典型资产：${m[3]}</p></button>`).join("");
+      $$(".material-card").forEach(b => b.addEventListener("click", () => selectMaterial(b.dataset.material)));
+    }
+    function selectMaterial(name) {
+      const map = { "青铜": ["shi-qiang-pan"], "山石": ["langya-tai","shimen-song","jiuchenggong"], "石刻": ["langya-tai","shimen-song","jiuchenggong"], "竹简": ["hanjian"], "竹木": ["hanjian"], "纸本": ["youbaoshan","yatou-wan","mifu-chidu","caoshu-qianziwen","gushi-sitie"], "绢本": [] };
+      $$(".material-card").forEach(c => c.classList.toggle("active", c.dataset.material === name));
+      $$(".art-card").forEach(c => c.classList.toggle("highlight", (map[name] || []).includes(c.dataset.artId)));
+      if (map[name]?.length) toast(`已高亮${name}相关作品`);
+    }
+    function renderJobs() {
+      $("#jobList").innerHTML = Object.keys(jobs).map((j, i) => `<button class="${i === 0 ? "active" : ""}" data-job="${j}">${j}</button>`).join("");
+      $$("#jobList button").forEach(b => b.addEventListener("click", () => selectJob(b.dataset.job)));
+      selectJob("全部");
+    }
+    function selectJob(job) {
+      $$("#jobList button").forEach(b => b.classList.toggle("active", b.dataset.job === job));
+      const cfg = jobs[job];
+      $("#jobPanel").innerHTML = `<h3>${job}</h3><p>${cfg.advice}</p><div class="mini-tags">${cfg.works.map(id => `<span>${byId(id).title}</span>`).join("")}</div><button class="primary-btn" data-target="artworks">查看相关作品</button>`;
+      $("#jobPanel [data-target]").addEventListener("click", () => scrollToId("artworks"));
+      $$(".art-card").forEach(c => c.classList.toggle("highlight", cfg.works.includes(c.dataset.artId)));
+    }
+    function renderSelector() {
+      const questions = [
+        ["read", "玩家是否必须快速读懂？", ["必须快速读懂", "需要风格但仍需识别", "主要承担氛围"]],
+        ["type", "文字属于什么类型？", ["国家与制度", "宗教与仪式", "行政与军事", "人物书信", "私人日记", "战斗与技能", "宣传与品牌"]],
+        ["carrier", "属于什么载体？", ["建筑", "石碑", "青铜器", "竹简", "纸本", "手卷", "UI界面", "技能特效", "宣传海报"]],
+        ["tone", "目标气质是什么？", ["古老", "神圣", "厚重", "规范", "文雅", "自然", "迅疾", "爆发"]]
+      ];
+      $("#selectorGrid").innerHTML = questions.map(([key, title, opts]) => `<div class="choice-group panel"><h3>${title}</h3>${opts.map(o => `<button data-q="${key}" data-value="${o}" class="${state.selector[key] === o ? "active" : ""}">${o}</button>`).join("")}</div>`).join("");
+      $$(".choice-group button").forEach(b => b.addEventListener("click", () => {
+        state.selector[b.dataset.q] = b.dataset.value;
+        persist();
+        renderSelector();
+        if (Object.keys(state.selector).length >= 4) showSelectorResult();
+      }));
+      if (Object.keys(state.selector).length >= 4) showSelectorResult();
+    }
+    function showSelectorResult() {
+      const s = state.selector;
+      let main = "楷书", aux = "行书";
+      if (s.read === "主要承担氛围") { main = ["古老","神圣","厚重"].includes(s.tone) ? "篆书" : "草书"; aux = "隶书"; }
+      else if (s.read === "需要风格但仍需识别") { main = ["人物书信","私人日记"].includes(s.type) ? "行书" : "隶书"; aux = "楷书"; }
+      if (["战斗与技能","技能特效"].includes(s.type) || ["迅疾","爆发"].includes(s.tone)) { main = "草书"; aux = "行书"; }
+      if (["国家与制度","宗教与仪式"].includes(s.type)) { main = s.read === "必须快速读懂" ? "楷书" : "篆书"; aux = "隶书"; }
+      const works = artworks.filter(a => a.scriptType.includes(main[0]) || a.scriptGroup.includes(main.replace("书",""))).slice(0, 3);
+      $("#selectorResult").classList.add("open");
+      $("#selectorResult").innerHTML = `<h3>推荐结果</h3>
+        <p><strong>推荐主书体：</strong>${main}　<strong>辅助书体：</strong>${aux}</p>
+        <p><strong>推荐载体：</strong>${s.carrier}　<strong>适用场景：</strong>${s.type} / ${s.tone}</p>
+        <p><strong>相关代表作品：</strong>${works.map(w => w.title).join("、") || "可从十件书迹中按材料继续筛选"}</p>
+        <p><strong>识别风险：</strong>${main === "草书" || main === "篆书" ? "识别风险较高，建议只承担短文本、氛围或动态演出。" : "识别风险较低，但仍应避免整页使用书法字体。"}</p>
+        <div class="button-row"><button class="primary-btn" id="saveSelectorResult">收藏结果</button><button class="ghost-btn" id="folderSelectorResult">加入项目资料夹</button></div>`;
+      $("#saveSelectorResult").addEventListener("click", () => { localStorage.setItem("lastSelectorResult", $("#selectorResult").innerText); updateGlobalUi(); toast("已收藏五体选择结果"); });
+      $("#folderSelectorResult").addEventListener("click", () => { localStorage.setItem("selectorInFolder", "true"); updateGlobalUi(); toast("已加入项目资料夹"); });
+    }
+    function renderRisks() {
+      const data = [
+        ["篆书", "把所有篆书都当作符咒。", "区分礼制、铭刻、印章、文字统一与神秘符号。"],
+        ["隶书", "只用于复古标题。", "结合简牍、官署、边塞、交通和行政文化。"],
+        ["楷书", "整页全部使用书法字体。", "正文使用高可读字体，书法原迹用于重点视觉。"],
+        ["行书", "所有人物都使用同一种潇洒字体。", "根据人物身份、性格、速度和情绪设计不同笔迹。"],
+        ["草书", "用于按钮、数值和长正文。", "用于短标题、气氛层、战斗演出和动态视觉。"],
+        ["五体混用", "一个界面同时堆叠多种书体。", "建立主书体、辅助书体、装饰书体三级规范。"]
+      ];
+      $("#riskGrid").innerHTML = data.map(r => `<article class="risk-card panel"><h3>${r[0]}</h3><p><strong>常见误用：</strong>${r[1]}</p><p><strong>建议：</strong>${r[2]}</p></article>`).join("");
+    }
+    function renderRelations() {
+      const nodes = ["材料：青铜、山石、竹木、纸本、绢本", "社会功能：祭祀与宗族、国家权力、地方治理、行政记录、文人交往、个人情绪", "研发资产：世界观、场景、建筑、道具、人物叙事、UI、技能特效、宣发视觉", "琅琊台刻石：帝国主城、纪功碑、官方文书系统、阵营权力标识", "鸭头丸帖：人物私信、医药道具、关系任务、生活化剧情", "草书长卷：战斗特效、情绪过场、宣发主视觉"];
+      $("#relationGrid").innerHTML = nodes.map(n => `<button class="relation-card panel node-btn">${n}</button>`).join("");
+      $$(".node-btn").forEach(n => n.addEventListener("click", () => { $$(".node-btn").forEach(x => x.classList.remove("active")); n.classList.add("active"); toast("已选中关联节点"); }));
+    }
+    function renderSources() {
+      $("#sourceGrid").innerHTML = artworks.map(a => `<article class="source-card panel"><h3>${a.title}</h3>${detailFields(a).slice(0, 12).map(([k,v]) => `<p class="meta"><strong>${k}</strong>：${v || "待核验"}</p>`).join("")}</article>`).join("");
+    }
+    function updateFolderSummary() {
+      const names = [...state.folder].map(id => byId(id)?.title).filter(Boolean);
+      $("#folderSummary").textContent = names.length ? `已加入：${names.join("、")}` : "尚未加入作品。";
+    }
+    function esc(value) {
+      return String(value || "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char]));
+    }
+    function favoriteCard(a) {
+      return `<article class="saved-card panel">
+        <h3>${a.title}</h3>
+        <p class="meta">${a.dynasty} · ${a.scriptType} · ${a.material}</p>
+        <div class="mini-tags">${a.keywords.slice(0, 3).map(k => `<span>${k}</span>`).join("")}</div>
+        <p>${a.description}</p>
+        <input class="note-input" data-note="${a.id}" value="${esc(state.notes[a.id])}" placeholder="添加个人备注">
+        <div class="button-row"><button class="ghost-btn" data-saved-view="${a.id}">查看高清</button><button class="ghost-btn" data-saved-compare="${a.id}">加入对比</button><button class="ghost-btn" data-saved-remove="${a.id}">取消收藏</button></div>
+      </article>`;
+    }
+    function bindSavedActions(root) {
+      $$('[data-saved-view]', root).forEach(btn => btn.addEventListener("click", () => openViewer(btn.dataset.savedView)));
+      $$('[data-saved-compare]', root).forEach(btn => btn.addEventListener("click", () => startCompareFrom(btn.dataset.savedCompare)));
+      $$('[data-saved-remove]', root).forEach(btn => btn.addEventListener("click", () => toggleSet(state.favorites, btn.dataset.savedRemove, "收藏")));
+      $$('[data-note]', root).forEach(input => input.addEventListener("change", () => { state.notes[input.dataset.note] = input.value.trim(); persist(); toast("备注已保存"); }));
+    }
+    function renderFavorites() {
+      const script = $("#favoriteScript");
+      const role = $("#favoriteRole");
+      const search = $("#favoriteSearch");
+      const scripts = [...new Set(artworks.map(a => a.scriptGroup))];
+      const roles = [...new Set(artworks.flatMap(a => a.gameRoles))];
+      const keepValue = (el, values, label) => {
+        const current = el.value || "全部";
+        el.innerHTML = `<option value="全部">全部${label}</option>${values.map(v => `<option value="${v}">${v}</option>`).join("")}`;
+        el.value = values.includes(current) ? current : "全部";
+      };
+      keepValue(script, scripts, "书体");
+      keepValue(role, roles, "岗位");
+      const draw = () => {
+        const q = (search.value || "").replace(/\s/g, "");
+        const list = [...state.favorites].map(byId).filter(Boolean).filter(a => {
+          const matchesText = !q || [a.title, a.dynasty, a.scriptType, a.material, ...a.keywords].join("").includes(q);
+          return matchesText && (script.value === "全部" || a.scriptGroup === script.value) && (role.value === "全部" || a.gameRoles.includes(role.value));
+        });
+        const grid = $("#favoriteGrid");
+        grid.innerHTML = list.length ? list.map(favoriteCard).join("") : `<div class="empty-state">还没有符合条件的收藏。回到专题页，从作品卡或高清查看器中加入收藏。</div>`;
+        bindSavedActions(grid);
+      };
+      if (!script.dataset.bound) {
+        [script, role].forEach(el => el.addEventListener("change", draw));
+        search.addEventListener("input", draw);
+        script.dataset.bound = "true";
+      }
+      draw();
+      const folderWorks = [...state.folder].map(byId).filter(Boolean);
+      const selectorCard = localStorage.getItem("lastSelectorResult");
+      $("#favoriteExtras").innerHTML = `
+        <article class="workspace-panel panel"><h3>项目资料夹</h3><p class="meta">${folderWorks.length ? folderWorks.map(a => a.title).join("、") : "尚未加入作品。"}</p></article>
+        <article class="workspace-panel panel"><h3>已保存的五体推荐</h3><p class="meta">${selectorCard ? esc(selectorCard).slice(0, 180) + "..." : "尚未保存五体选择结果。"}</p></article>`;
+    }
+    function compactList(title, list, emptyText) {
+      return `<article class="workspace-panel panel"><h3>${title}</h3>${list.length ? list.map(a => `<p><strong>${a.title}</strong><br><span class="meta">${a.dynasty} · ${a.scriptType}</span></p><div class="button-row"><button class="ghost-btn" data-saved-view="${a.id}">查看高清</button><button class="ghost-btn" data-saved-compare="${a.id}">加入对比</button></div>`).join("") : `<p class="meta">${emptyText}</p>`}</article>`;
+    }
+    function renderWorkspace() {
+      const favoriteWorks = [...state.favorites].map(byId).filter(Boolean);
+      const folderWorks = [...state.folder].map(byId).filter(Boolean);
+      const recentWorks = state.recent.map(byId).filter(Boolean);
+      const hasCard = Boolean(localStorage.getItem("lastInspireCard") || localStorage.getItem("lastSelectorResult"));
+      $("#workspaceMetrics").innerHTML = [
+        [favoriteWorks.length, "收藏作品"], [folderWorks.length, "资料夹作品"], [hasCard ? 1 : 0, "灵感卡"], [recentWorks.length, "最近浏览"]
+      ].map(([value, label]) => `<article class="metric-card panel"><strong>${value}</strong><span>${label}</span></article>`).join("");
+      const lists = $("#workspaceLists");
+      lists.innerHTML = compactList("继续研究", recentWorks, "打开超高清作品后会出现在这里。") + compactList("最近收藏", favoriteWorks.slice(0, 4), "尚未收藏作品。") + `<article class="workspace-panel panel"><h3>项目资料夹</h3><p class="meta">${folderWorks.length ? folderWorks.map(a => a.title).join("、") : "尚未加入作品。"}</p></article>` + `<article class="workspace-panel panel"><h3>最近灵感卡</h3><p class="meta">${hasCard ? esc(localStorage.getItem("lastInspireCard") || localStorage.getItem("lastSelectorResult")).slice(0, 220) + "..." : "尚未生成灵感卡。"}</p></article>`;
+      bindSavedActions(lists);
+    }
+    function recordRecent(id) {
+      state.recent = [id, ...state.recent.filter(item => item !== id)].slice(0, 6);
+      localStorage.setItem("recentArtworks", JSON.stringify(state.recent));
+      updateGlobalUi();
+    }
+    function makeInspireCard(id) {
+      const a = byId(id);
+      const text = `${a.title}\n书体：${a.scriptType}\n时代：${a.dynasty}\n材料：${a.material}\n关键词：${a.keywords.join("、")}\n适用岗位：${a.gameRoles.join("、")}\n推荐场景：${a.gameScenes.join("、")}\n使用风险：${a.risks.join("；")}\n来源：${a.imageSource}\n版权状态：${a.copyrightStatus}`;
+      $("#inspirePreview").innerHTML = `<pre style="white-space:pre-wrap;margin:0">${text}</pre>`;
+      localStorage.setItem("lastInspireCard", text);
+      updateGlobalUi();
+      scrollToId("inspiration");
+    }
+    function openModal(id) {
+      const m = document.getElementById(id);
+      m.classList.add("open");
+      m.setAttribute("aria-hidden", "false");
+      $("button, input, textarea, select", m)?.focus();
+    }
+    function closeModal(id) {
+      const m = document.getElementById(id);
+      m.classList.remove("open");
+      m.setAttribute("aria-hidden", "true");
+    }
+    function openFeedback() { openModal("feedbackModal"); }
+    $$(".modal [data-close]").forEach(b => b.addEventListener("click", () => closeModal(b.dataset.close)));
+    $("#feedbackForm").addEventListener("submit", e => {
+      e.preventDefault();
+      const data = { type: $("#feedbackType").value, text: $("#feedbackText").value, contact: $("#feedbackContact").value, file: $("#feedbackShot").files[0]?.name || "", at: new Date().toISOString() };
+      const all = JSON.parse(localStorage.getItem("feedbacks") || "[]");
+      all.push(data);
+      localStorage.setItem("feedbacks", JSON.stringify(all));
+      closeModal("feedbackModal");
+      toast("感谢你的反馈，我们会进一步核查与整理。");
+      e.target.reset();
+    });
+    const viewer = {
+      scale: 1, x: 0, y: 0, rotation: 0, brightness: 100, contrast: 100, gray: false, invert: false, min: .12, max: 8,
+      img: $("#viewerImg"), stage: $("#viewerStage"), dragging: false, pointers: new Map(), lastDist: null
+    };
+    function openViewer(id) {
+      const a = byId(id);
+      state.currentArtwork = a;
+      localStorage.setItem("recentArtwork", id);
+      recordRecent(id);
+      $("#viewer").classList.add("open");
+      $("#viewer").setAttribute("aria-hidden", "false");
+      document.body.classList.add("locked");
+      $("#viewerTitle").textContent = a.title;
+      $("#miniMapImg").src = a.thumb;
+      $("#viewerLoading").style.display = "grid";
+      $("#viewerError").style.display = "none";
+      viewer.img.removeAttribute("src");
+      viewer.img.alt = a.title;
+      viewer.img.onload = () => { $("#viewerLoading").style.display = "none"; fitImage(); };
+      viewer.img.onerror = () => { $("#viewerLoading").style.display = "none"; $("#viewerError").style.display = "grid"; };
+      viewer.img.src = a.full;
+      resetFilters(false);
+    }
+    function closeViewer() {
+      $("#viewer").classList.remove("open");
+      $("#viewer").setAttribute("aria-hidden", "true");
+      document.body.classList.remove("locked");
+      $("#viewerPanel").classList.remove("open");
+    }
+    function applyViewer() {
+      viewer.img.style.transform = `translate(${viewer.x}px, ${viewer.y}px) scale(${viewer.scale}) rotate(${viewer.rotation}deg)`;
+      viewer.img.style.filter = `brightness(${viewer.brightness}%) contrast(${viewer.contrast}%) ${viewer.gray ? "grayscale(1)" : ""} ${viewer.invert ? "invert(1)" : ""}`;
+      $("#zoomLabel").textContent = `${Math.round(viewer.scale * 100)}%`;
+    }
+    function fitImage() {
+      const r = viewer.stage.getBoundingClientRect();
+      const iw = viewer.img.naturalWidth || 1, ih = viewer.img.naturalHeight || 1;
+      viewer.scale = Math.min(r.width / iw, r.height / ih) * .88;
+      viewer.min = Math.min(viewer.scale * .5, .2);
+      viewer.x = (r.width - iw * viewer.scale) / 2;
+      viewer.y = (r.height - ih * viewer.scale) / 2;
+      applyViewer();
+    }
+    function zoomAt(clientX, clientY, factor) {
+      const rect = viewer.stage.getBoundingClientRect();
+      const px = clientX - rect.left;
+      const py = clientY - rect.top;
+      const old = viewer.scale;
+      const next = Math.max(viewer.min, Math.min(viewer.max, old * factor));
+      viewer.x = px - (px - viewer.x) * (next / old);
+      viewer.y = py - (py - viewer.y) * (next / old);
+      viewer.scale = next;
+      applyViewer();
+    }
+    viewer.stage.addEventListener("wheel", e => { e.preventDefault(); zoomAt(e.clientX, e.clientY, e.deltaY < 0 ? 1.14 : .88); }, { passive: false });
+    viewer.stage.addEventListener("dblclick", e => zoomAt(e.clientX, e.clientY, 1.8));
+    viewer.stage.addEventListener("pointerdown", e => { viewer.stage.setPointerCapture(e.pointerId); viewer.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY }); viewer.dragging = true; viewer.stage.classList.add("dragging"); });
+    viewer.stage.addEventListener("pointermove", e => {
+      if (!viewer.pointers.has(e.pointerId)) return;
+      const prev = viewer.pointers.get(e.pointerId);
+      viewer.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      const pts = [...viewer.pointers.values()];
+      if (pts.length === 2) {
+        const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+        if (viewer.lastDist) zoomAt((pts[0].x + pts[1].x) / 2, (pts[0].y + pts[1].y) / 2, dist / viewer.lastDist);
+        viewer.lastDist = dist;
+      } else if (viewer.dragging) {
+        viewer.x += e.clientX - prev.x;
+        viewer.y += e.clientY - prev.y;
+        applyViewer();
+      }
+    });
+    ["pointerup","pointercancel","pointerleave"].forEach(ev => viewer.stage.addEventListener(ev, e => { viewer.pointers.delete(e.pointerId); viewer.lastDist = null; if (!viewer.pointers.size) { viewer.dragging = false; viewer.stage.classList.remove("dragging"); } }));
+    $("#viewerClose").addEventListener("click", closeViewer);
+    $("#viewerToolClose").addEventListener("click", closeViewer);
+    $("#retryImage").addEventListener("click", () => openViewer(state.currentArtwork.id));
+    function resetFilters(apply = true) {
+      Object.assign(viewer, { rotation: 0, brightness: 100, contrast: 100, gray: false, invert: false });
+      $("#gridOverlay").classList.remove("show");
+      $("#scaleOverlay").classList.remove("show");
+      if (apply) fitImage();
+    }
+    function viewerPanel(kind) {
+      const a = state.currentArtwork;
+      const panel = $("#viewerPanel");
+      panel.classList.add("open");
+      if (kind === "detail") panel.innerHTML = `<h3>${a.title}</h3>${artworkDetailContent(a)}`;
+      if (kind === "marks") panel.innerHTML = `<h3>局部标记</h3><p>该作品的细节标记待策展补充。系统已预留题跋、印章、特殊字形、关键笔画、章法结构、破损区域和争议区域等类型。</p>`;
+      if (kind === "cite") panel.innerHTML = `<h3>引用信息</h3><p>${a.title}，${a.author}，${a.dynasty}，${a.scriptType}。原作收藏机构：${a.originalMuseum}；数字图像来源：${a.imageSource}；授权状态：${a.copyrightStatus}。</p><button class="primary-btn" id="copyViewerCite">复制</button>`;
+      if (kind === "image") {
+        panel.innerHTML = `<h3>图像工具</h3>
+          <div class="button-row"><button class="ghost-btn" data-tool="zin">放大</button><button class="ghost-btn" data-tool="zout">缩小</button><button class="ghost-btn" data-tool="fit">适应窗口</button><button class="ghost-btn" data-tool="one">100%</button><button class="ghost-btn" data-tool="raw">原始像素</button></div>
+          <div class="button-row" style="margin-top:8px"><button class="ghost-btn" data-tool="rl">逆时针</button><button class="ghost-btn" data-tool="rr">顺时针</button><button class="ghost-btn" data-tool="gray">灰度</button><button class="ghost-btn" data-tool="invert">反相</button><button class="ghost-btn" data-tool="grid">网格</button><button class="ghost-btn" data-tool="scale">比例尺</button><button class="ghost-btn" data-tool="fullscreen">全屏</button></div>
+          <label class="tool-row"><span>亮度</span><input id="brightRange" type="range" min="50" max="160" value="${viewer.brightness}"></label>
+          <label class="tool-row"><span>对比度</span><input id="contrastRange" type="range" min="50" max="180" value="${viewer.contrast}"></label>
+          <button class="primary-btn" data-tool="reset">重置全部设置</button>`;
+        bindImageTools(panel);
+      }
+      if (kind === "compare") {
+        panel.innerHTML = `<h3>对比作品</h3><p>当前作品：${a.title}</p>${artworks.filter(x => x.id !== a.id).map(x => `<button class="suggest-item" data-compare-with="${x.id}"><strong>${x.title}</strong><span>${x.scriptType} · ${x.dynasty}</span></button>`).join("")}`;
+        $$("[data-compare-with]", panel).forEach(b => b.addEventListener("click", () => openCompare(a.id, b.dataset.compareWith)));
+      }
+    }
+    function bindImageTools(panel) {
+      panel.addEventListener("input", e => {
+        if (e.target.id === "brightRange") viewer.brightness = e.target.value;
+        if (e.target.id === "contrastRange") viewer.contrast = e.target.value;
+        applyViewer();
+      });
+      $$("[data-tool]", panel).forEach(b => b.addEventListener("click", () => {
+        const t = b.dataset.tool;
+        if (t === "zin") zoomAt(innerWidth/2, innerHeight/2, 1.2);
+        if (t === "zout") zoomAt(innerWidth/2, innerHeight/2, .82);
+        if (t === "fit") fitImage();
+        if (t === "one") { viewer.scale = 1; viewer.x = 60; viewer.y = 80; applyViewer(); }
+        if (t === "raw") { viewer.scale = 1; viewer.x = 0; viewer.y = 56; applyViewer(); }
+        if (t === "rl") viewer.rotation -= 90;
+        if (t === "rr") viewer.rotation += 90;
+        if (t === "gray") viewer.gray = !viewer.gray;
+        if (t === "invert") viewer.invert = !viewer.invert;
+        if (t === "grid") $("#gridOverlay").classList.toggle("show");
+        if (t === "scale") $("#scaleOverlay").classList.toggle("show");
+        if (t === "fullscreen") {
+          if (document.fullscreenElement) document.exitFullscreen?.();
+          else $("#viewer").requestFullscreen?.();
+        }
+        if (t === "reset") resetFilters();
+        applyViewer();
+      }));
+    }
+    $$(".viewer-toolbar [data-vtool]").forEach(b => b.addEventListener("click", () => {
+      const t = b.dataset.vtool;
+      if (t === "fav") { state.favorites.has(state.currentArtwork.id) ? state.favorites.delete(state.currentArtwork.id) : state.favorites.add(state.currentArtwork.id); persist(); renderArtworks(state.libraryScript); toast("收藏状态已更新"); return; }
+      if (t === "folder") { state.folder.add(state.currentArtwork.id); persist(); renderArtworks(state.libraryScript); toast("已加入项目资料夹"); return; }
+      if (t === "compare") {
+        const leftId = state.compareBase || state.currentArtwork.id;
+        const rightId = leftId === state.currentArtwork.id ? suggestCompareTarget(leftId) : state.currentArtwork.id;
+        openCompare(leftId, rightId);
+        state.compareBase = null;
+        return;
+      }
+      viewerPanel(t);
+    }));
+    function startCompareFrom(id) {
+      if (!state.compareBase) { state.compareBase = id; toast("已设为对比左侧，请再选择一件作品"); return; }
+      openCompare(state.compareBase, id);
+      state.compareBase = null;
+    }
+    function suggestCompareTarget(id) {
+      const pair = groups.map(g => g[1]).find(ids => ids.includes(id));
+      if (pair) return pair.find(item => item !== id) || artworks.find(a => a.id !== id)?.id;
+      return artworks.find(a => a.id !== id)?.id;
+    }
+    const compareState = { left: { scale: 1, x: 0, y: 0 }, right: { scale: 1, x: 0, y: 0 }, syncZoom: false, syncMove: false };
+    function openCompare(leftId, rightId) {
+      const left = byId(leftId), right = byId(rightId);
+      if (!left || !right) return;
+      $("#compareModal").classList.add("open");
+      $("#compareModal").setAttribute("aria-hidden", "false");
+      $("#compareModal").classList.remove("slider");
+      document.body.classList.add("locked");
+      $("#leftPane img").src = left.preview;
+      $("#rightPane img").src = right.preview;
+      $("#sliderBase").src = left.preview;
+      $("#sliderTop").src = right.preview;
+      compareState.left = { scale: 1, x: 0, y: 0 };
+      compareState.right = { scale: 1, x: 0, y: 0 };
+      applyCompare();
+    }
+    function applyCompare() {
+      $("#leftPane img").style.transform = `translate(${compareState.left.x}px,${compareState.left.y}px) scale(${compareState.left.scale})`;
+      $("#rightPane img").style.transform = `translate(${compareState.right.x}px,${compareState.right.y}px) scale(${compareState.right.scale})`;
+    }
+    function bindComparePane(sel, key) {
+      const pane = $(sel), img = $("img", pane);
+      let down = false, last = null;
+      pane.addEventListener("wheel", e => {
+        e.preventDefault();
+        const factor = e.deltaY < 0 ? 1.12 : .9;
+        compareState[key].scale = Math.max(.2, Math.min(6, compareState[key].scale * factor));
+        if (compareState.syncZoom) (key === "left" ? compareState.right : compareState.left).scale = compareState[key].scale;
+        applyCompare();
+      }, { passive: false });
+      pane.addEventListener("pointerdown", e => { down = true; last = { x: e.clientX, y: e.clientY }; pane.setPointerCapture(e.pointerId); });
+      pane.addEventListener("pointermove", e => {
+        if (!down) return;
+        compareState[key].x += e.clientX - last.x;
+        compareState[key].y += e.clientY - last.y;
+        if (compareState.syncMove) Object.assign(key === "left" ? compareState.right : compareState.left, { x: compareState[key].x, y: compareState[key].y });
+        last = { x: e.clientX, y: e.clientY };
+        applyCompare();
+      });
+      pane.addEventListener("pointerup", () => down = false);
+    }
+    bindComparePane("#leftPane", "left"); bindComparePane("#rightPane", "right");
+    $("#compareSide").addEventListener("click", () => $("#compareModal").classList.remove("slider"));
+    $("#compareSlider").addEventListener("click", () => $("#compareModal").classList.add("slider"));
+    $("#syncZoom").addEventListener("click", e => { compareState.syncZoom = !compareState.syncZoom; e.currentTarget.classList.toggle("active", compareState.syncZoom); });
+    $("#syncMove").addEventListener("click", e => { compareState.syncMove = !compareState.syncMove; e.currentTarget.classList.toggle("active", compareState.syncMove); });
+    $("#swapCompare").addEventListener("click", () => { const l = $("#leftPane img").src, s = $("#sliderBase").src; $("#leftPane img").src = $("#rightPane img").src; $("#rightPane img").src = l; $("#sliderBase").src = $("#sliderTop").src; $("#sliderTop").src = s; });
+    $("#closeCompare").addEventListener("click", () => { $("#compareModal").classList.remove("open"); $("#compareModal").setAttribute("aria-hidden", "true"); document.body.classList.remove("locked"); });
+    $("#sliderRange").addEventListener("input", e => $("#sliderTop").style.clipPath = `inset(0 ${100 - e.target.value}% 0 0)`);
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape") { closeViewer(); closeDrawer(); closeModal("infoModal"); closeModal("feedbackModal"); $("#compareModal").classList.remove("open"); document.body.classList.remove("locked"); }
+      if ($("#viewer").classList.contains("open")) {
+        if (e.key === "+" || e.key === "=") zoomAt(innerWidth/2, innerHeight/2, 1.14);
+        if (e.key === "-") zoomAt(innerWidth/2, innerHeight/2, .88);
+        if (e.key === "ArrowLeft") viewer.x += 32;
+        if (e.key === "ArrowRight") viewer.x -= 32;
+        if (e.key === "ArrowUp") viewer.y += 32;
+        if (e.key === "ArrowDown") viewer.y -= 32;
+        applyViewer();
+      }
+    });
+    $("#makePack").addEventListener("click", () => {
+      const text = [...state.folder].map(id => byId(id)).filter(Boolean).map(a => `${a.title}：${a.scriptType}，${a.gameScenes.join("、")}`).join("\n") || "项目资料夹为空。";
+      $("#inspirePreview").innerHTML = `<pre style="white-space:pre-wrap;margin:0">${text}</pre>`;
+      toast("已生成项目灵感包");
+    });
+    $("#copyCard").addEventListener("click", () => navigator.clipboard?.writeText($("#inspirePreview").innerText).then(() => toast("已复制灵感卡文本")).catch(() => toast("当前环境不支持剪贴板")));
+    $("#printCard").addEventListener("click", () => print());
+    $("#downloadTable").addEventListener("click", () => {
+      const csv = "\ufeff书体,基本结构,公共性,个人性,典型载体,主要游戏价值\n" + Object.entries(scriptMeta).map(([k,m]) => `${m.full},${m.feature},${m.culture[4]},${m.culture[5]},${m.culture[1]},${m.dev[1]}`).join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob); a.download = "五体对比表.csv"; a.click(); URL.revokeObjectURL(a.href);
+    });
+    $("#copyCitation").addEventListener("click", () => navigator.clipboard?.writeText("《字入游戏：五体书法的视觉语言与研发应用》，文化研究与游戏研发灵感参考 Demo，2026-07-11。").then(() => toast("已复制引用信息")).catch(() => toast("当前环境不支持剪贴板")));
+    function initImageFallback() {
+      document.addEventListener("error", e => {
+        if (e.target.tagName === "IMG") {
+          e.target.alt = `${e.target.alt || "图片"}（加载失败）`;
+          e.target.style.background = "#efe5d4";
+        }
+      }, true);
+    }
+    function promoteLibrary() {
+      const hero = $("#home");
+      const wuti = $("#wuti");
+      const library = $("#artworks");
+      if (hero && wuti && hero.nextElementSibling !== wuti) hero.after(wuti);
+      if (wuti && library && wuti.nextElementSibling !== library) wuti.after(library);
+    }
+    try {
+      promoteLibrary(); initWutiControls(); renderWuti(); initNav(); initSearch(); renderArtworks(); renderSelector(); renderSources(); updateFolderSummary(); updateGlobalUi(); initImageFallback(); handleRoute();
+    } catch (err) {
+      document.body.insertAdjacentHTML("afterbegin", `<div style="position:fixed;z-index:9999;inset:12px auto auto 12px;background:#fff3f0;border:1px solid #a8392b;padding:12px;border-radius:8px">页面初始化失败：${err.message}</div>`);
+    }
+  })();
+  </script>
+</body>
+</html>
